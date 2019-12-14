@@ -32,11 +32,16 @@ class Driver:
         sub_parser.set_defaults(subcommand=fn)
         return fn
 
-    def _run(self, argv: t.Optional[t.List[str]] = None) -> t.Any:
+    def _run(self, argv: t.Optional[t.List[str]] = None, debug: bool = False) -> t.Any:
         args = self.parser.parse_args(argv)
         params = vars(args)
         action = params.pop("subcommand")
-        return action(**params)
+        if inspect.iscoroutinefunction(action):
+            import asyncio
+
+            return asyncio.run(action(**params), debug=debug)
+        else:
+            return action(**params)
 
     def run(
         self,
@@ -46,11 +51,12 @@ class Driver:
         where: t.Optional[str] = None,
         module: t.Optional[ModuleType] = None,
         _depth: int = 2,
+        debug: bool = False,
     ) -> t.Any:
         if aggressive or module:
             for fn in _collect_functions(module=module, where=where, _depth=_depth):
                 self.register(fn)
-        return self._run(argv)
+        return self._run(argv, debug=debug)
 
 
 def _collect_functions(

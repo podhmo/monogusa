@@ -1,4 +1,5 @@
 import argparse
+import os
 from magicalimport import import_module
 from monogusa.cli.runtime import Driver
 
@@ -8,7 +9,9 @@ def main() -> None:
     parser.add_argument("file")
     args, rest = parser.parse_known_args()
     m = import_module(args.file)
-    Driver(prog=args.file).run(rest, module=m)
+
+    debug = bool(os.environ.get("DEBUG"))
+    Driver(prog=args.file).run(rest, module=m, debug=debug)
 
 
 if __name__ == "__main__":

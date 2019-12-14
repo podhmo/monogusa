@@ -1,3 +1,5 @@
+default: 00 01 02
+
 00:
 	mkdir -p $(shell echo $@*/)dst
 	python -m monogusa.cli $(shell echo $@*/)commands.py hello | tee $(shell echo $@*/)dst/hello.txt
@@ -13,6 +15,10 @@
 	cat $(shell echo $@*/)inputs/hello.json | http -b --json POST :44444/hello | jqfpy 'd = get(); d.pop("duration",None); d' | tee $(shell echo $@*/)dst/hello.output
 	cat $(shell echo $@*/)inputs/bye.json | http -b --json POST :44444/bye | jqfpy 'd = get(); d.pop("duration",None); d' | tee $(shell echo $@*/)dst/bye.output
 	( test -f _$@.pid && kill $$(cat _$@.pid) || exit 0 ) && rm -f _$@.pid
+
+02:
+	mkdir -p $(shell echo $@*/)dst
+	python -m monogusa.cli $(shell echo $@*/)commands.py hello | tee $(shell echo $@*/)dst/hello.txt
 
 clean:
 	rm -rf **/dst/*
