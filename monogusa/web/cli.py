@@ -14,7 +14,7 @@ def create_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def run(app: ASGIApp, *, where: t.Optional[str] = None, _depth: int = 1):
+def run(app: ASGIApp, *, where: t.Optional[str] = None, _depth: int = 1) -> None:
     if where is None:
         frame = sys._getframe(_depth)  # black magic
         _globals = frame.f_globals
@@ -33,15 +33,15 @@ def run(app: ASGIApp, *, where: t.Optional[str] = None, _depth: int = 1):
             cmd_args.append("--debug")
         if args.port is not None:
             cmd_args.extend(["--port", str(args.port)])
-        return os.execvp("uvicorn", cmd_args)
+        os.execvp("uvicorn", cmd_args)
 
 
-def show_doc(app: ASGIApp, *, debug: bool = False):
+def show_doc(app: ASGIApp, *, debug: bool = False) -> None:
     import asyncio
     from async_asgi_testclient import TestClient
     from dictknife import loading
 
-    async def run():
+    async def run() -> None:
         async with TestClient(app) as client:
             response = await client.get("/openapi.json")
             loading.dumpfile(response.json())

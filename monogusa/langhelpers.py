@@ -11,7 +11,7 @@ class reify(t.Generic[T]):
 
     def __init__(self, wrapped: t.Callable[[t.Any], T]):
         self.wrapped = wrapped
-        update_wrapper(self, wrapped) # type: ignore
+        update_wrapper(self, wrapped)  # type: ignore
 
     def __get__(
         self, inst: t.Optional[object], objtype: t.Optional[t.Type[t.Any]] = None
