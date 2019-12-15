@@ -28,7 +28,7 @@ class Driver:
         return subparesrs
 
     def register(self, fn: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:
-        sub_parser = self.subparsers.add_parser(fn.__name__, help=inspect.getdoc(fn))
+        sub_parser = self.subparsers.add_parser(fn.__name__, help=_get_summary(fn))
 
         # NOTE: positional arguments are treated as component
         Injector(fn).inject(sub_parser, ignore_arguments=True)
@@ -96,3 +96,10 @@ def create_parser(
     for fn in _collect_commands(where=where, module=module, _depth=_depth):
         driver.register(fn)
     return driver.parser
+
+
+def _get_summary(fn: t.Callable[..., t.Any]) -> t.Optional[str]:
+    doc = inspect.getdoc(fn)
+    if not doc:
+        return doc
+    return doc.split("\n\n", 1)[0]
