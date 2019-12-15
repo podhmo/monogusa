@@ -1,0 +1,5 @@
+usage: 03di/commands.py list [-h] [--uncompleted]
+
+optional arguments:
+  -h, --help     show this help message and exit
+  --uncompleted

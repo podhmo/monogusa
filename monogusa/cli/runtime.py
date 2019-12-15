@@ -3,8 +3,9 @@ from types import ModuleType
 import sys
 import argparse
 import inspect
-from monogusa.langhelpers import reify
 from handofcats.injector import Injector
+from monogusa.langhelpers import reify
+from monogusa.dependencies import resolve_args, is_component
 
 
 class Driver:
@@ -28,7 +29,10 @@ class Driver:
 
     def register(self, fn: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:
         sub_parser = self.subparsers.add_parser(fn.__name__, help=inspect.getdoc(fn))
-        Injector(fn).inject(sub_parser)
+
+        # NOTE: positional arguments are treated as component
+        Injector(fn).inject(sub_parser, ignore_arguments=True)
+
         sub_parser.set_defaults(subcommand=fn)
         return fn
 
@@ -36,12 +40,15 @@ class Driver:
         args = self.parser.parse_args(argv)
         params = vars(args)
         action = params.pop("subcommand")
+
+        positionals = resolve_args(action)
+
         if inspect.iscoroutinefunction(action):
             import asyncio
 
-            return asyncio.run(action(**params), debug=debug)
+            return asyncio.run(action(*positionals, **params), debug=debug)
         else:
-            return action(**params)
+            return action(*positionals, **params)
 
     def run(
         self,
@@ -54,12 +61,12 @@ class Driver:
         debug: bool = False,
     ) -> t.Any:
         if aggressive or module:
-            for fn in _collect_functions(module=module, where=where, _depth=_depth):
+            for fn in _collect_commands(module=module, where=where, _depth=_depth):
                 self.register(fn)
         return self._run(argv, debug=debug)
 
 
-def _collect_functions(
+def _collect_commands(
     where: t.Optional[str] = None,
     module: t.Optional[ModuleType] = None,
     _depth: int = 1,
@@ -73,6 +80,8 @@ def _collect_functions(
     for name, v in _globals.items():
         if name.startswith("_"):
             continue
+        if is_component(v):
+            continue
         if inspect.isfunction(v) and v.__module__ == where:
             yield v
 
@@ -84,6 +93,6 @@ def create_parser(
     _depth: int = 2,
 ) -> argparse.ArgumentParser:
     driver = Driver()
-    for fn in _collect_functions(where=where, module=module, _depth=_depth):
+    for fn in _collect_commands(where=where, module=module, _depth=_depth):
         driver.register(fn)
     return driver.parser
