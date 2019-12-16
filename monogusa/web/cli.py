@@ -26,7 +26,8 @@ def run(app: ASGIApp, *, where: t.Optional[str] = None, _depth: int = 1) -> None
     if args.show_doc:
         return show_doc(app, debug=args.debug)
     else:
-        os.chdir(os.path.dirname(where))
+        if os.path.dirname(where):
+            os.chdir(os.path.dirname(where))
         app_name = os.path.basename(where)[: -len(".py")]
         cmd_args = ["uvicorn", f"{app_name}:app"]
         if args.debug:

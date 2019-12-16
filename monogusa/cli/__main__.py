@@ -11,6 +11,10 @@ def main() -> None:
     m = import_module(args.file)
 
     debug = bool(os.environ.get("DEBUG"))
+    if os.environ.get("LOGGING"):
+        import logging
+
+        logging.basicConfig(level=getattr(logging, os.environ.get("LOGGING").upper()))
     Driver(prog=args.file).run(rest, module=m, debug=debug)
 
 
