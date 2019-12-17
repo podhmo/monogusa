@@ -1,4 +1,4 @@
-default: 00 01 02 03
+default: 00 01 02 03 04
 
 00:
 	mkdir -p $(shell echo $@*/)dst
@@ -25,6 +25,14 @@ default: 00 01 02 03
 	python -m monogusa.cli $(shell echo $@*/)commands.py list --uncompleted | tee $(shell echo $@*/)dst/list.json
 	python -m monogusa.cli $(shell echo $@*/)commands.py -h 2>&1 | tee $(shell echo $@*/)dst/help.txt
 	python -m monogusa.cli $(shell echo $@*/)commands.py list -h 2>&1 | tee $(shell echo $@*/)dst/list-help.txt
+
+04:
+	mkdir -p $(shell echo $@*/)dst
+	python $(shell echo $@*/)00*.py hello --name world | tee $(shell echo $@*/)dst/00hello.txt
+	python $(shell echo $@*/)00*.py -h 2>&1 | tee $(shell echo $@*/)dst/00help.txt
+	python $(shell echo $@*/)00*.py hello -h 2>&1 | tee $(shell echo $@*/)dst/00hello-help.txt
+	python $(shell echo $@*/)01*.py hello --name world | tee $(shell echo $@*/)dst/01hello.txt
+
 
 clean:
 	rm -rf **/dst/*

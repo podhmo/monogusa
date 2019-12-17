@@ -1,7 +1,6 @@
 import argparse
-import os
+from monogusa.cli import run
 from magicalimport import import_module
-from monogusa.cli.runtime import Driver
 
 
 def main() -> None:
@@ -9,13 +8,7 @@ def main() -> None:
     parser.add_argument("file")
     args, rest = parser.parse_known_args()
     m = import_module(args.file)
-
-    debug = bool(os.environ.get("DEBUG"))
-    if os.environ.get("LOGGING"):
-        import logging
-
-        logging.basicConfig(level=getattr(logging, os.environ.get("LOGGING").upper()))
-    Driver(prog=args.file).run(rest, module=m, debug=debug)
+    run(m, filename=args.file, args=rest)
 
 
 if __name__ == "__main__":

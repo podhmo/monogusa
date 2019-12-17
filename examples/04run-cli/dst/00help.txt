@@ -1,0 +1,8 @@
+usage: 00no-module.py [-h] {hello} ...
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+subcommands:
+  {hello}
+    hello
