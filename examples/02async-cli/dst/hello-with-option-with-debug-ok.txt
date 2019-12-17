@@ -1,0 +1,9 @@
+DEBUG:handofcats.injector:add_argument --debug {'action': 'store_true'}
+DEBUG:asyncio:Using selector: EpollSelector
+DEBUG:asyncio:Close <_UnixSelectorEventLoop running=False closed=False debug=True>
+0 xxx True
+0 yyy True
+1 xxx True
+1 yyy True
+2 xxx True
+2 yyy True

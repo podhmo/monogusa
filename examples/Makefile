@@ -19,6 +19,10 @@ default: 00 01 02 03 04
 02:
 	mkdir -p $(shell echo $@*/)dst
 	python -m monogusa.cli $(shell echo $@*/)commands.py hello | tee $(shell echo $@*/)dst/hello.txt
+	DEBUG=1 LOGGING=DEBUG python -m monogusa.cli $(shell echo $@*/)commands.py hello 2>&1 | tee $(shell echo $@*/)dst/hello-with-environ.txt
+	python -m monogusa.cli $(shell echo $@*/)commands.py --debug --logging=DEBUG hello 2>&1 | tee $(shell echo $@*/)dst/hello-with-option.txt
+	python -m monogusa.cli $(shell echo $@*/)commands.py --debug --logging=DEBUG - hello --debug 2>&1 | tee $(shell echo $@*/)dst/hello-with-option-with-debug-ok.txt
+	python -m monogusa.cli $(shell echo $@*/)commands.py --debug --logging=DEBUG hello --debug 2>&1 | tee $(shell echo $@*/)dst/hello-with-option-with-debug-ng.txt
 
 03:
 	mkdir -p $(shell echo $@*/)dst
