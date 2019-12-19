@@ -14,11 +14,23 @@ from . import _fnspec as fnspec
 
 
 def create_schema_code(spec: fnspec.Fnspec) -> codeobject.Object:
+    """
+    generate code like below
+
+    class <Name>(BaseModel):  # pydantic.BaseModel
+
+        # fieds are filled by passed function's spec, something this.
+        name: str
+        age: int = 0
+    """
+
     @codeobject.codeobject
     def _emit_code(m: Module, name: str) -> Module:
         with m.class_(name, "BaseModel"):
             if spec.doc is not None:
-                m.docstring(f"auto generated class from {spec.target_function.__module__}:{spec.name}")
+                m.docstring(
+                    f"auto generated class from {spec.target_function.__module__}:{spec.name}"
+                )
 
             if len(spec.parameters) == 0:
                 m.stmt("pass")
@@ -49,6 +61,16 @@ def create_schema_code(spec: fnspec.Fnspec) -> codeobject.Object:
 def create_view_code(
     spec: fnspec.Fnspec, *, InputSchema: t.Optional[codeobject.Object]
 ) -> codeobject.Object:
+    """
+    generate code like below
+
+    @router.post("/<name>", response_model=runtime.CommandOutput)
+    def <name>(input: <Name>) -> t.Dict[str, t.Any]:
+        with runtime.handle() as s:
+            <module>.<name>(**input.dict())
+            return s.dict()
+    """
+
     @codeobject.codeobject
     def _emit_code(m: Module, name: str) -> Module:
         # TODO: DI
@@ -74,6 +96,10 @@ def create_view_code(
 
 
 def create_main_code(*, where: t.Optional[str] = None) -> codeobject.Object:
+    """
+    generate main()
+    """
+
     @codeobject.codeobject
     def main_code(m: Module, name: str) -> Module:
         with m.def_("main", "app: t.Optional[FastAPI]=None", return_type=None):
