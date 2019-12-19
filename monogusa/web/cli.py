@@ -10,7 +10,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--show-doc", action="store_true")
     parser.add_argument("--debug", action="store_true")
-    parser.add_argument("--port", type=int, default=None)
+    parser.add_argument("--port", type=int, default=55555)
     return parser
 
 
@@ -33,6 +33,12 @@ def run(app: ASGIApp, *, where: t.Optional[str] = None, _depth: int = 1) -> None
         if args.debug:
             cmd_args.append("--debug")
         if args.port is not None:
+            print(
+                f"\x1b[90mNow go to http://127.0.0.1:{args.port}/docs.\n",
+                "You will see the automatic interactive API documentation \x1b[0m",
+                file=sys.stderr,
+                sep="",
+            )
             cmd_args.extend(["--port", str(args.port)])
         os.execvp("uvicorn", cmd_args)
 

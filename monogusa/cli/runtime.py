@@ -61,14 +61,14 @@ class Driver:
         debug: bool = False,
     ) -> t.Any:
         if aggressive or module:
-            for fn in _collect_commands(module=module, where=where, _depth=_depth):
+            for fn in collect_commands(module, where=where, _depth=_depth):
                 self.register(fn)
         return self._run(argv, debug=debug)
 
 
-def _collect_commands(
-    where: t.Optional[str] = None,
+def collect_commands(
     module: t.Optional[ModuleType] = None,
+    where: t.Optional[str] = None,
     _depth: int = 1,
 ) -> t.Iterable[t.Callable[..., t.Any]]:
     if module is not None:
@@ -93,7 +93,7 @@ def create_parser(
     _depth: int = 2,
 ) -> argparse.ArgumentParser:
     driver = Driver()
-    for fn in _collect_commands(where=where, module=module, _depth=_depth):
+    for fn in collect_commands(module, where=where, _depth=_depth):
         driver.register(fn)
     return driver.parser
 

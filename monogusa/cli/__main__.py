@@ -19,7 +19,7 @@ def main() -> None:
         args = parser.parse_args(raw_args)
     else:
         args, rest = parser.parse_known_args()
-    m = import_module(args.file)
+    m = import_module(args.file, cwd=True)
     run(m, filename=args.file, args=rest, debug=args.debug, loglevel=args.loglevel)
 
 
