@@ -6,7 +6,11 @@ default: 00 01 02 03 04
 	python -m monogusa.cli $(shell echo $@*/)commands.py bye | tee $(shell echo $@*/)dst/bye.txt
 	python -m monogusa.cli $(shell echo $@*/)commands.py bye -h 2>&1 | tee $(shell echo $@*/)dst/bye-help.txt
 
-01:
+01-generate:
+	mkdir -p $(shell echo 01*/)dst
+	python -m monogusa.web --with-main 01*/commands.py | black - | sed "s@$(shell pwd)/@@g" > $(shell echo 01*/)web.py
+
+01: 01-generate
 	mkdir -p $(shell echo $@*/)dst
 	( test -f _$@.pid && kill $$(cat _$@.pid) || exit 0 ) && rm -f _$@.pid
 	python $(shell echo $@*/)web.py --port=44444 & echo $$! > _$@.pid

@@ -1,3 +1,4 @@
 monogusa[web]
 httpie
 jqfpy
+black
