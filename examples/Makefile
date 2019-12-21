@@ -7,8 +7,10 @@ default: 00 01 02 03 04
 	python -m monogusa.cli $(shell echo $@*/)commands.py bye -h 2>&1 | tee $(shell echo $@*/)dst/bye-help.txt
 
 01-generate:
+	# dry run: --dry-run
 	mkdir -p $(shell echo 01*/)dst
-	python -m monogusa.web --with-main 01*/commands.py | black - | sed "s@$(shell pwd)/@@g" > $(shell echo 01*/)web.py
+	cd $(shell echo 01*/) && python -m monogusa.web --with-main --dst . commands.py
+	black $(shell echo 01*/)*.py
 
 01: 01-generate
 	mkdir -p $(shell echo $@*/)dst

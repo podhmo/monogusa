@@ -3,15 +3,10 @@ import typing as t
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, FastAPI
 from monogusa.web import runtime
-import magicalimport
+import commands
 
 
 router = APIRouter()
-
-
-n01web_commands = magicalimport.import_module(
-    "commands.py", here="01web"
-)
 
 
 class HelloInput(BaseModel):
@@ -22,13 +17,8 @@ class HelloInput(BaseModel):
 def hello(input: HelloInput) -> t.Dict[str, t.Any]:
     with runtime.handle() as s:
         # TODO: support positional arguments? (DI)
-        n01web_commands.hello(**input.dict())
+        commands.hello(**input.dict())
         return s.dict()
-
-
-n01web_commands = magicalimport.import_module(
-    "commands.py", here="01web"
-)
 
 
 class ByeInput(BaseModel):
@@ -39,7 +29,7 @@ class ByeInput(BaseModel):
 def bye(input: ByeInput) -> t.Dict[str, t.Any]:
     with runtime.handle() as s:
         # TODO: support positional arguments? (DI)
-        n01web_commands.bye(**input.dict())
+        commands.bye(**input.dict())
         return s.dict()
 
 
