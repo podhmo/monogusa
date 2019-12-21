@@ -51,3 +51,10 @@ def _to_valid_module_name(
     elif not (c.isalpha() or c == "_"):
         name = "x" + name
     return _ignore_rx.sub("_", name.replace("-", "_"))
+
+
+def _spec_to_arg_value__with_depends(spec: fnspec.Fnspec) -> str:
+    if len(spec.arguments) == 0:
+        return f"{spec.name}: {spec.type_str_of(spec.return_type)}=Depends({spec.fullname})"
+
+    return f"{spec.name}: {spec.type_str_of(spec.return_type)}=Depends({spec.name})"

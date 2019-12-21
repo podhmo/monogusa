@@ -1,5 +1,9 @@
+from __future__ import annotations
 import typing as t
+import sys
 import inspect
+from types import ModuleType
+import dataclasses
 
 
 class Marker:
@@ -82,3 +86,35 @@ def get_resolver() -> Resolver:
 
 def resolve_args(fn: t.Callable[..., t.Any]) -> t.List[t.Any]:
     return get_resolver().resolve_args(fn)
+
+
+def scan_module(
+    module: t.Optional[ModuleType] = None,
+    where: t.Optional[str] = None,
+    _depth: int = 1,
+) -> Scanned:
+    if module is not None:
+        _globals = module.__dict__
+    else:
+        frame = sys._getframe(_depth)  # black magic
+        _globals = frame.f_globals
+    where = _globals["__name__"]
+
+    commands = []
+    components = []
+
+    for name, v in _globals.items():
+        if name.startswith("_"):
+            continue
+        if is_component(v):
+            components.append(v)
+        elif inspect.isfunction(v) and v.__module__ == where:
+            commands.append(v)
+
+    return Scanned(commands=commands, components=components)
+
+
+@dataclasses.dataclass(frozen=True)
+class Scanned:
+    commands: t.List[t.Callable[..., t.Any]]
+    components: t.List[t.Callable[..., t.Any]]

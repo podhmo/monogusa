@@ -10,17 +10,17 @@ from monogusa.langhelpers import reify
 
 @dataclasses.dataclass
 class Fnspec:
-    target_function: t.Callable[..., t.Any]
+    body: t.Callable[..., t.Any]
     argspec: inspect.FullArgSpec
     _module: t.Optional[str] = None
 
     @property
     def name(self) -> str:
-        return self.target_function.__name__
+        return self.body.__name__
 
     @property
     def module(self) -> str:
-        return self._module or self.target_function.__module__
+        return self._module or self.body.__module__
 
     @property
     def fullname(self) -> str:
@@ -28,23 +28,53 @@ class Fnspec:
 
     @property
     def doc(self) -> t.Optional[str]:
-        return self.target_function.__doc__
+        return self.body.__doc__
 
-    def kind_of(self, name: str) -> str:
+    @property
+    def is_coroutinefunction(self) -> bool:
+        return inspect.iscoroutinefunction(self.body)
+
+    def kind_of(self, name: str) -> Kind:
         return self._classified[name]
 
     def default_of(self, name: str) -> t.Any:
         return self._kwonlydefaults[name]
 
     def type_str_of(self, typ: t.Type[t.Any]) -> str:
-        return _resolve_type(typ)
+        if typ.__module__ == "builtins":
+            return typ.__name__
+        if self.body.__module__ == typ.__module__:
+            return f"{self.module}.{typ.__name__}"
+        return f"{typ.__module__}.{typ.__name__}"
 
     @reify
-    def parameters(self) -> t.List[t.Tuple[str, t.Type[t.Any]]]:
+    def parameters(self) -> t.List[t.Tuple[str, t.Type[t.Any], Kind]]:
+        """arguments + keyword_arguments"""
         return [
-            (name, v)
+            (name, v, self.kind_of(name))
             for name, v in self.argspec.annotations.items()
             if name != "return"
+        ]
+
+    @reify
+    def return_type(self) -> t.Type[t.Any]:
+        val = self.argspec.annotations["return"]  # type: t.Type[t.Any]
+        return val
+
+    @reify
+    def arguments(self) -> t.List[t.Tuple[str, t.Type[t.Any], Kind]]:
+        return [
+            (name, v, kind)
+            for name, v, kind in self.parameters
+            if kind.startswith("arg")
+        ]
+
+    @reify
+    def keyword_arguments(self) -> t.List[t.Tuple[str, t.Type[t.Any], Kind]]:
+        return [
+            (name, v, kind)
+            for name, v, kind in self.parameters
+            if kind.startswith("kw")
         ]
 
     @reify
@@ -81,8 +111,3 @@ def _classify_args(spec: inspect.FullArgSpec) -> t.Dict[str, Kind]:
     for k in spec.kwonlydefaults or []:
         classified[k] = "kw_defaults"
     return classified
-
-
-def _resolve_type(typ: t.Type[t.Any]) -> str:
-    # TODO: import?
-    return typ.__name__

@@ -1,11 +1,10 @@
 import typing as t
 from types import ModuleType
-import sys
 import argparse
 import inspect
 from handofcats.injector import Injector
 from monogusa.langhelpers import reify
-from monogusa.dependencies import resolve_args, is_component
+from monogusa.dependencies import resolve_args, scan_module
 
 
 class Driver:
@@ -61,29 +60,9 @@ class Driver:
         debug: bool = False,
     ) -> t.Any:
         if aggressive or module:
-            for fn in collect_commands(module, where=where, _depth=_depth):
+            for fn in scan_module(module, where=where, _depth=_depth).commands:
                 self.register(fn)
         return self._run(argv, debug=debug)
-
-
-def collect_commands(
-    module: t.Optional[ModuleType] = None,
-    where: t.Optional[str] = None,
-    _depth: int = 1,
-) -> t.Iterable[t.Callable[..., t.Any]]:
-    if module is not None:
-        _globals = module.__dict__
-    else:
-        frame = sys._getframe(_depth)  # black magic
-        _globals = frame.f_globals
-    where = _globals["__name__"]
-    for name, v in _globals.items():
-        if name.startswith("_"):
-            continue
-        if is_component(v):
-            continue
-        if inspect.isfunction(v) and v.__module__ == where:
-            yield v
 
 
 def create_parser(
@@ -93,7 +72,7 @@ def create_parser(
     _depth: int = 2,
 ) -> argparse.ArgumentParser:
     driver = Driver()
-    for fn in collect_commands(module, where=where, _depth=_depth):
+    for fn in scan_module(module, where=where, _depth=_depth).commands:
         driver.register(fn)
     return driver.parser
 

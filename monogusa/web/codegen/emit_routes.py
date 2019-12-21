@@ -1,5 +1,4 @@
 import typing as t
-import dataclasses
 from prestring.naming import pascalcase
 from prestring.utils import LazyArguments
 
@@ -8,11 +7,13 @@ from . import _codeobject as codeobject
 from ._codeobject import Module
 from . import _fnspec as fnspec
 
-# TODO: support dependencies
-
 
 def emit_routes(
-    functions: t.List[t.Callable[..., t.Any]], *, m: Module, with_main: bool, where: str
+    m: Module,
+    *,
+    functions: t.List[t.Callable[..., t.Any]],
+    spec_map: t.Dict[str, fnspec.Fnspec],
+    where: str,
 ) -> Module:
     m.toplevel.import_("typing", as_="t")
     m.toplevel.from_("pydantic", "BaseModel")
@@ -21,36 +22,22 @@ def emit_routes(
     m.stmt("router = APIRouter()")
     m.sep()
 
-    imported: t.Dict[str, str] = {}  # spec.module -> exact module name
     for fn in functions:
-        spec = fnspec.fnspec(fn)
+        spec = spec_map[fn.__name__]
 
         m.toplevel.from_("monogusa.web", "runtime")
-
-        if spec.module != "__main__":
-            if spec.module not in imported:
-                exact_module_name = helpers.emit_target_spec_import(
-                    spec, where=where, m=m
-                )
-                imported[spec.module] = exact_module_name
-
-            # update module path
-            spec = dataclasses.replace(spec, _module=imported[spec.module])
 
         schema_code = None
         if len(spec.parameters) > 0:
             schema_code = create_input_schema_code(spec)
             m.stmt(schema_code)
 
-        view_code = create_view_code(spec, InputSchema=schema_code)
+        view_code = create_view_code(spec, InputSchema=schema_code, spec_map=spec_map)
         m.stmt(view_code)
-
-    if with_main:
-        m.stmt(main_code)
     return m
 
 
-def create_input_schema_code(spec: fnspec.Fnspec) -> codeobject.Object:
+def create_input_schema_code(spec: fnspec.Fnspec,) -> codeobject.Object:
     """
     generate code like below
 
@@ -66,14 +53,13 @@ def create_input_schema_code(spec: fnspec.Fnspec) -> codeobject.Object:
         with m.class_(name, "BaseModel"):
             if spec.doc is not None:
                 m.docstring(
-                    f"auto generated class from {spec.target_function.__module__}:{spec.name}"
+                    f"auto generated class from {spec.body.__module__}:{spec.name}"
                 )
 
-            if len(spec.parameters) == 0:
+            if len(spec.keyword_arguments) == 0:
                 m.stmt("pass")
 
-            for name, typ in spec.parameters:
-                kind = spec.kind_of(name)
+            for name, typ, kind in spec.parameters:
                 if kind == "args":
                     continue
                 elif kind == "args_defaults":
@@ -96,7 +82,10 @@ def create_input_schema_code(spec: fnspec.Fnspec) -> codeobject.Object:
 
 
 def create_view_code(
-    spec: fnspec.Fnspec, *, InputSchema: t.Optional[codeobject.Object]
+    spec: fnspec.Fnspec,
+    *,
+    InputSchema: t.Optional[codeobject.Object],
+    spec_map: t.Dict[str, fnspec.Fnspec],
 ) -> codeobject.Object:
     """
     generate code like below
@@ -110,39 +99,30 @@ def create_view_code(
 
     @codeobject.codeobject
     def _emit_code(m: Module, name: str) -> Module:
-        # TODO: DI
         m.stmt('@router.post("/{}", response_model=runtime.CommandOutput)', spec.name)
 
         args = []
         if InputSchema is not None:
             args.append(f"input: {InputSchema}")
+        #  for di
+        for argname, _, _ in spec.arguments:
+            args.append(helpers._spec_to_arg_value__with_depends(spec_map[argname]))
 
         with m.def_(name, *args, return_type="t.Dict[str, t.Any]"):
             if spec.doc is not None:
                 m.docstring(spec.doc)
             with m.with_("runtime.handle() as s"):
-                args = []
+                args = [argname for argname, _, _ in spec.arguments]
                 if InputSchema is not None:
                     args.append("**input.dict()")
-                    m.stmt("# TODO: support positional arguments? (DI)")
-                m.stmt("{}({})", spec.fullname, LazyArguments(args))
+
+                # xxx: await
+                prefix = spec.fullname
+                if spec.is_coroutinefunction:
+                    prefix = f"await {prefix}"
+                m.stmt("{}({})", prefix, LazyArguments(args))
                 m.stmt("return s.dict()")
         return m
 
     _emit_code.name = spec.name  # update name
     return _emit_code
-
-
-@codeobject.codeobject
-def main_code(m: Module, name: str) -> Module:
-    m.toplevel.from_("fastapi", "FastAPI")
-
-    with m.def_("main", "app: FastAPI", return_type=None):
-        m.from_("monogusa.web", "cli")
-        m.stmt(f"cli.run(app)")
-
-    m.stmt("app = FastAPI()")
-    m.stmt("app.include_router(router)")
-    with m.if_("__name__ == '__main__'"):
-        m.stmt("main(app=app)")
-    return m
