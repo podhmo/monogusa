@@ -1,0 +1,47 @@
+openapi: 3.0.2
+info:
+  title: Fast API
+  version: 0.1.0
+paths:
+  /must_error:
+    post:
+      summary: Must Error
+      operationId: must_error_must_error_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandOutput'
+components:
+  schemas:
+    CommandOutput:
+      title: CommandOutput
+      required:
+      - stdout
+      - stderr
+      - duration
+      type: object
+      properties:
+        status_code:
+          title: Status Code
+          type: integer
+          default: 0
+        stdout:
+          title: Stdout
+          anyOf:
+          - type: array
+            items:
+              type: string
+          - type: string
+        stderr:
+          title: Stderr
+          anyOf:
+          - type: array
+            items:
+              type: string
+          - type: string
+        duration:
+          title: Duration
+          type: number

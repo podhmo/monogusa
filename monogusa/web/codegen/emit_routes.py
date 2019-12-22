@@ -121,7 +121,7 @@ def create_view_code(
                 if spec.is_coroutinefunction:
                     prefix = f"await {prefix}"
                 m.stmt("{}({})", prefix, LazyArguments(args))
-                m.stmt("return s.dict()")
+            m.stmt("return s.dict()")
         return m
 
     _emit_code.name = spec.name  # update name

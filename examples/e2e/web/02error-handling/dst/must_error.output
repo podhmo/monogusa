@@ -1,0 +1,16 @@
+{
+  "status_code": 1,
+  "stdout": [
+    "must error"
+  ],
+  "stderr": [
+    "Traceback (most recent call last):",
+    "  File \"ROOT/monogusa/web/runtime.py\", line 40, in handle",
+    "    yield s",
+    "  File \"./web.py\", line 15, in must_error",
+    "    commands.must_error()",
+    "  File \"./commands.py\", line 3, in must_error",
+    "    1 / 0",
+    "ZeroDivisionError: division by zero"
+  ]
+}

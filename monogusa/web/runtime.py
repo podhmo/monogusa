@@ -13,8 +13,13 @@ class State:
     stderr: StringIO
     start: float  # time.time()
 
+    # shell's status code like value.
+    # so the situation http status is 200 but status code != 0 is existed.
+    status_code: int = 0
+
     def dict(self) -> t.Dict[str, t.Any]:
         return {
+            "status_code": self.status_code,
             "duration": time.time() - self.start,
             "stdout": self.stdout.getvalue(),
             "stderr": self.stderr.getvalue(),
@@ -27,14 +32,24 @@ def handle(*, now: t.Optional[float] = None) -> t.Iterator[State]:
     stderr = StringIO()
     now = now or time.time()
 
+    s = State(start=now, stdout=stdout, stderr=stderr)
     # TODO: use demux like interface, instead of redirect_xxx()
     with contextlib.redirect_stdout(stdout):
         with contextlib.redirect_stderr(stderr):
-            yield State(start=now, stdout=stdout, stderr=stderr)
+            try:
+                yield s
+            except Exception:
+                # TODO: returning 500 response ?
+                import traceback
+
+                s.status_code = 1
+                tb = traceback.format_exc()
+                print(tb, file=stderr)
 
 
 # todo: move it?
 class CommandOutput(pydantic_main.BaseModel):
+    status_code: int = 0
     stdout: t.Union[t.List[str], str]
     stderr: t.Union[t.List[str], str]
     duration: float

@@ -1,4 +1,5 @@
 {
+  "status_code": 0,
   "stdout": [
     "save: byebye in 'sqlite:///:memory:'"
   ],

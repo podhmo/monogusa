@@ -17,7 +17,7 @@ class HelloInput(BaseModel):
 def hello(input: HelloInput) -> t.Dict[str, t.Any]:
     with runtime.handle() as s:
         commands.hello(**input.dict())
-        return s.dict()
+    return s.dict()
 
 
 class ByeInput(BaseModel):
@@ -28,7 +28,7 @@ class ByeInput(BaseModel):
 def bye(input: ByeInput) -> t.Dict[str, t.Any]:
     with runtime.handle() as s:
         commands.bye(**input.dict())
-        return s.dict()
+    return s.dict()
 
 
 def main(app: FastAPI):

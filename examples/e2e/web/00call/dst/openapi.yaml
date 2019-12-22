@@ -68,6 +68,10 @@ components:
       - duration
       type: object
       properties:
+        status_code:
+          title: Status Code
+          type: integer
+          default: 0
         stdout:
           title: Stdout
           anyOf:
