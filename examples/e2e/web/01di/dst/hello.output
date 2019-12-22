@@ -1,0 +1,6 @@
+{
+  "stdout": [
+    "save: hello world in 'sqlite:///:memory:'"
+  ],
+  "stderr": []
+}
