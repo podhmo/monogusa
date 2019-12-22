@@ -9,7 +9,7 @@ default: 00 01 02 03 04
 01-generate:
 	# dry run: --dry-run
 	mkdir -p $(shell echo 01*/)dst
-	cd $(shell echo 01*/) && python -m monogusa.web --with-main --dst . commands.py
+	cd $(shell echo 01*/) && python -m monogusa.web commands.py
 	black $(shell echo 01*/)*.py
 
 01: 01-generate

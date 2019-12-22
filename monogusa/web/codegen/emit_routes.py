@@ -28,7 +28,7 @@ def emit_routes(
         m.toplevel.from_("monogusa.web", "runtime")
 
         schema_code = None
-        if len(spec.parameters) > 0:
+        if len(spec.keyword_arguments) > 0:
             schema_code = create_input_schema_code(spec)
             m.stmt(schema_code)
 
