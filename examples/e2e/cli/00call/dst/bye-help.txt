@@ -1,4 +1,4 @@
-usage: 00cli/commands.py bye [-h] [--name NAME]
+usage: 00call/commands.py bye [-h] [--name NAME]
 
 optional arguments:
   -h, --help   show this help message and exit
