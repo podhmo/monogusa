@@ -1,5 +1,6 @@
 from __future__ import annotations
 import typing as t
+import typing_extensions as tx
 import inspect
 import dataclasses
 from functools import update_wrapper
@@ -96,7 +97,7 @@ def fnspec(fn: t.Callable[..., t.Any]) -> Fnspec:
     return spec
 
 
-Kind = t.Literal["args", "args_defaults", "kw", "kw_defaults"]
+Kind = tx.Literal["args", "args_defaults", "kw", "kw_defaults"]
 
 
 def _classify_args(spec: inspect.FullArgSpec) -> t.Dict[str, Kind]:
