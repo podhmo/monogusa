@@ -1,4 +1,4 @@
-default: 00 01 02 03
+default: 00 01 02 03 04
 
 # normal usecase
 00:
@@ -30,6 +30,12 @@ default: 00 01 02 03
 	python $(shell echo $@*/)00*.py -h 2>&1 | tee $(shell echo $@*/)dst/00help.txt
 	python $(shell echo $@*/)00*.py hello -h 2>&1 | tee $(shell echo $@*/)dst/00hello-help.txt
 	python $(shell echo $@*/)01*.py hello --name world | tee $(shell echo $@*/)dst/01hello.txt
+
+# ignore marker
+04:
+	mkdir -p $(shell echo $@*/)dst
+	python -m monogusa.cli $(shell echo $@*/)commands.py -h 2>&1 | tee $(shell echo $@*/)dst/help.txt
+
 
 clean:
 	rm -rf **/dst/*

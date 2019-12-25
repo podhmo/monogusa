@@ -1,9 +1,13 @@
 from __future__ import annotations
 import typing as t
+import logging
 import sys
 import inspect
 from types import ModuleType
 import dataclasses
+
+
+logger = logging.getLogger(__name__)
 
 
 class Marker:
@@ -73,11 +77,18 @@ class Resolver:
 
 component = Marker("component")
 is_component = component.is_marked
+ignore = Marker("ignore")
+is_ignored = ignore.is_marked
 
 
 def get_component_marker() -> Marker:
     global component
     return component
+
+
+def get_ignore_marker() -> Marker:
+    global ignore
+    return ignore
 
 
 def get_resolver() -> Resolver:
@@ -105,6 +116,10 @@ def scan_module(
 
     for name, v in _globals.items():
         if name.startswith("_"):
+            logger.debug("skip, %r is ignored", v)
+            continue
+        if is_ignored(v):
+            logger.debug("skip, %r is ignored", v)
             continue
         if is_component(v):
             components.append(v)
