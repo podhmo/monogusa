@@ -6,6 +6,7 @@ import inspect
 from types import ModuleType
 import dataclasses
 
+from .langhelpers import run_with
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,10 @@ class Resolver:
         self.registry: t.Dict[str, t.Any] = {}
 
     def resolve_args(
-        self, fn: t.Callable[..., t.Any], *, strict: bool = True
+        self,
+        fn: t.Callable[..., t.Union[t.Awaitable[t.Any], t.Any]],
+        *,
+        strict: bool = True,
     ) -> t.List[t.Any]:
         argspec = inspect.getfullargspec(fn)
         # XXX: for `from __future__ import annotations`
@@ -64,7 +68,7 @@ class Resolver:
 
             fixture_factory = g[name]
             fixture_args = self.resolve_args(fixture_factory)
-            val = fixture_factory(*fixture_args)
+            val = run_with(fixture_factory, fixture_args, {})
 
             self.registry[name] = val
             args.append(val)

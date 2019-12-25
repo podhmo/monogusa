@@ -3,7 +3,7 @@ from types import ModuleType
 import argparse
 import inspect
 from handofcats.injector import Injector
-from monogusa.langhelpers import reify
+from monogusa.langhelpers import reify, run_with
 from monogusa.dependencies import resolve_args, scan_module
 
 
@@ -37,17 +37,11 @@ class Driver:
 
     def _run(self, argv: t.Optional[t.List[str]] = None, debug: bool = False) -> t.Any:
         args = self.parser.parse_args(argv)
-        params = vars(args)
-        action = params.pop("subcommand")
+        keywords = vars(args)
+        action = keywords.pop("subcommand")
 
         positionals = resolve_args(action)
-
-        if inspect.iscoroutinefunction(action):
-            import asyncio
-
-            return asyncio.run(action(*positionals, **params), debug=debug)
-        else:
-            return action(*positionals, **params)
+        return run_with(action, positionals, keywords, debug=debug)
 
     def run(
         self,

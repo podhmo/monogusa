@@ -1,4 +1,5 @@
 import typing as t
+import inspect
 from functools import update_wrapper
 
 
@@ -21,3 +22,18 @@ class reify(t.Generic[T]):
         val = self.wrapped(inst)
         setattr(inst, self.wrapped.__name__, val)
         return val
+
+
+def run_with(
+    action: t.Callable[..., t.Union[t.Any, t.Awaitable[t.Any]]],
+    positionals: t.Sequence[t.Any],
+    keywords: t.Mapping[str, t.Any],
+    *,
+    debug: bool = False,
+) -> t.Any:
+    if inspect.iscoroutinefunction(action):
+        import asyncio
+
+        return asyncio.run(action(*positionals, **keywords), debug=debug)
+    else:
+        return action(*positionals, **keywords)

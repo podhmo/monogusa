@@ -1,4 +1,4 @@
-default: 00 01 02 03 04
+default: 00 01 02 03 04 05
 
 # normal usecase
 00:
@@ -35,6 +35,11 @@ default: 00 01 02 03 04
 04:
 	mkdir -p $(shell echo $@*/)dst
 	python -m monogusa.cli $(shell echo $@*/)commands.py -h 2>&1 | tee $(shell echo $@*/)dst/help.txt
+
+# di with async/await
+05:
+	mkdir -p $(shell echo $@*/)dst
+	python -m monogusa.cli $(shell echo $@*/)commands.py hello 2>&1 | tee $(shell echo $@*/)dst/hello.txt
 
 
 clean:
