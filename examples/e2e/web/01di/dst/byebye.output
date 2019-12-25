@@ -1,7 +1,11 @@
 {
   "status_code": 0,
-  "stdout": [
-    "save: byebye in 'sqlite:///:memory:'"
-  ],
-  "stderr": []
+  "console": [
+    {
+      "port": "stdout",
+      "lines": [
+        "save: byebye in 'sqlite:///:memory:'"
+      ]
+    }
+  ]
 }

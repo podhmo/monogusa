@@ -42,8 +42,7 @@ components:
     CommandOutput:
       title: CommandOutput
       required:
-      - stdout
-      - stderr
+      - console
       - duration
       type: object
       properties:
@@ -51,20 +50,11 @@ components:
           title: Status Code
           type: integer
           default: 0
-        stdout:
-          title: Stdout
-          anyOf:
-          - type: array
-            items:
-              type: string
-          - type: string
-        stderr:
-          title: Stderr
-          anyOf:
-          - type: array
-            items:
-              type: string
-          - type: string
+        console:
+          title: Console
+          type: array
+          items:
+            $ref: '#/components/schemas/_OutputRow'
         duration:
           title: Duration
           type: number
@@ -104,3 +94,18 @@ components:
         type:
           title: Error Type
           type: string
+    _OutputRow:
+      title: _OutputRow
+      required:
+      - port
+      - lines
+      type: object
+      properties:
+        port:
+          title: Port
+          type: string
+        lines:
+          title: Lines
+          type: array
+          items:
+            type: string
