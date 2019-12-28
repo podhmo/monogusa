@@ -63,12 +63,12 @@ class Resolver:
 
             if name not in g:
                 raise ValueError(
-                    f"fixture ({name} : {argspec.annotations.get(name)}) is not found"
+                    f"component ({name} : {argspec.annotations.get(name)}) is not found"
                 )
 
-            fixture_factory = g[name]
-            fixture_args = self.resolve_args(fixture_factory)
-            val = run_with(fixture_factory, fixture_args, {})
+            component_factory = g[name]
+            component_args = self.resolve_args(component_factory)
+            val = run_with(component_factory, component_args, {})
 
             self.registry[name] = val
             args.append(val)
@@ -120,10 +120,10 @@ def scan_module(
 
     for name, v in _globals.items():
         if name.startswith("_"):
-            logger.debug("skip, %r is ignored", v)
+            logger.debug("skip, name=%r %r is ignored", name, v)
             continue
         if is_ignored(v):
-            logger.debug("skip, %r is ignored", v)
+            logger.debug("skip, name=%r %r is ignored", name, v)
             continue
         if is_component(v):
             components.append(v)
