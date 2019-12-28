@@ -10,11 +10,11 @@ default: 00 01 02 03 04 05
 # async support (with varenv, and debugging flag)
 01:
 	mkdir -p $(shell echo $@*/)dst
-	python -m monogusa.cli $(shell echo $@*/)commands.py hello | tee $(shell echo $@*/)dst/hello.txt
-	DEBUG=1 LOGGING=DEBUG python -m monogusa.cli $(shell echo $@*/)commands.py hello 2>&1 | tee $(shell echo $@*/)dst/hello-with-environ.txt
-	python -m monogusa.cli $(shell echo $@*/)commands.py --debug --logging=DEBUG hello 2>&1 | tee $(shell echo $@*/)dst/hello-with-option.txt
-	python -m monogusa.cli $(shell echo $@*/)commands.py --debug --logging=DEBUG - hello --debug 2>&1 | tee $(shell echo $@*/)dst/hello-with-option-with-debug-ok.txt
-	python -m monogusa.cli $(shell echo $@*/)commands.py --debug --logging=DEBUG hello --debug 2>&1 | tee $(shell echo $@*/)dst/hello-with-option-with-debug-ng.txt
+	python -u -m monogusa.cli $(shell echo $@*/)commands.py hello | tee $(shell echo $@*/)dst/hello.txt
+	DEBUG=1 LOGGING=INFO python -u -m monogusa.cli $(shell echo $@*/)commands.py hello 2>&1 | tee $(shell echo $@*/)dst/hello-with-environ.txt
+	python -u -m monogusa.cli $(shell echo $@*/)commands.py --debug --logging=INFO hello 2>&1 | tee $(shell echo $@*/)dst/hello-with-option.txt
+	python -u -m monogusa.cli $(shell echo $@*/)commands.py --debug --logging=INFO - hello --debug 2>&1 | tee $(shell echo $@*/)dst/hello-with-option-with-debug-ok.txt
+	python -u -m monogusa.cli $(shell echo $@*/)commands.py --debug --logging=INFO hello --debug 2>&1 | tee $(shell echo $@*/)dst/hello-with-option-with-debug-ng.txt
 
 # dependency injection (positional arguments)
 02:

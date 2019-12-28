@@ -4,7 +4,7 @@ import argparse
 import inspect
 from handofcats.injector import Injector
 from monogusa.langhelpers import reify, run_with, run_with_async
-from monogusa.dependencies import resolve_args, scan_module
+from monogusa.dependencies import scan_module, resolve_args, resolve_args_async
 
 
 class Driver:
@@ -68,7 +68,7 @@ class AsyncDriver(Driver):
         keywords = vars(args).copy()
         action = keywords.pop("subcommand")
 
-        positionals = resolve_args(action)
+        positionals = await resolve_args_async(action)
         return await run_with_async(action, positionals, keywords, debug=debug)
 
     # override

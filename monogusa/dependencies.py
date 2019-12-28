@@ -6,7 +6,7 @@ import inspect
 from types import ModuleType
 import dataclasses
 
-from .langhelpers import run_with
+from .langhelpers import run_with, run_with_async
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +31,24 @@ class Marker:
         return name in self.pool
 
 
+def _get_fullargspec(fn: t.Callable[..., t.Any]) -> inspect.FullArgSpec:
+    argspec = inspect.getfullargspec(fn)
+    # XXX: for `from __future__ import annotations`
+    annotations = t.get_type_hints(fn)
+    assert len(argspec.annotations) == len(annotations)
+    argspec.annotations.update(annotations)
+    return argspec
+
+
 class Resolver:
     def __init__(self, marker: Marker) -> None:
         self.marker = marker
         self.registry: t.Dict[str, t.Any] = {}
+
+    def _type_check(self, val: t.Any, *, typ: t.Type[t.Any], strict: bool) -> None:
+        if strict:
+            if not hasattr(typ, "__origin__"):  # skip generics
+                assert isinstance(val, typ)
 
     def resolve_args(
         self,
@@ -42,11 +56,7 @@ class Resolver:
         *,
         strict: bool = True,
     ) -> t.List[t.Any]:
-        argspec = inspect.getfullargspec(fn)
-        # XXX: for `from __future__ import annotations`
-        annotations = t.get_type_hints(fn)
-        assert len(argspec.annotations) == len(annotations)
-        argspec.annotations.update(annotations)
+        argspec = _get_fullargspec(fn)
 
         g = self.marker.pool
         if not argspec.args and fn.__name__ in g:
@@ -57,10 +67,7 @@ class Resolver:
             if name in self.registry:
                 val = self.registry[name]
                 args.append(val)
-                if strict:
-                    typ_ = argspec.annotations[name]
-                    if not hasattr(typ_, "__origin__"):  # skip generics
-                        assert isinstance(val, typ_)
+                self._type_check(val, typ=argspec.annotations[name], strict=strict)
                 continue
 
             if name not in g:
@@ -75,10 +82,42 @@ class Resolver:
             self.registry[name] = val
             args.append(val)
 
-            if strict:
-                typ_ = argspec.annotations[name]
-                if not hasattr(typ_, "__origin__"):  # skip generics
-                    assert isinstance(val, typ_)
+            self._type_check(val, typ=argspec.annotations[name], strict=strict)
+        return args
+
+    async def resolve_args_async(
+        self,
+        fn: t.Callable[..., t.Union[t.Awaitable[t.Any], t.Any]],
+        *,
+        strict: bool = True,
+    ) -> t.List[t.Any]:
+        argspec = _get_fullargspec(fn)
+
+        g = self.marker.pool
+        if not argspec.args and fn.__name__ in g:
+            return []
+
+        args = []
+        for name in argspec.args:
+            if name in self.registry:
+                val = self.registry[name]
+                args.append(val)
+                self._type_check(val, typ=argspec.annotations[name], strict=strict)
+                continue
+
+            if name not in g:
+                raise ValueError(
+                    f"component ({name} : {argspec.annotations.get(name)}) is not found"
+                )
+
+            component_factory = g[name]
+            component_args = await self.resolve_args_async(component_factory)
+            val = await run_with_async(component_factory, component_args, {})
+
+            self.registry[name] = val
+            args.append(val)
+
+            self._type_check(val, typ=argspec.annotations[name], strict=strict)
         return args
 
 
@@ -104,6 +143,10 @@ def get_resolver() -> Resolver:
 
 def resolve_args(fn: t.Callable[..., t.Any]) -> t.List[t.Any]:
     return get_resolver().resolve_args(fn)
+
+
+async def resolve_args_async(fn: t.Callable[..., t.Any]) -> t.List[t.Any]:
+    return await get_resolver().resolve_args_async(fn)
 
 
 def scan_module(

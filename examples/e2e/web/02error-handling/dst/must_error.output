@@ -11,7 +11,7 @@
       "port": "stderr",
       "lines": [
         "Traceback (most recent call last):",
-        "  File \"ROOT/monogusa/web/runtime.py\", line 40, in handle",
+        "  File \"ROOT/monogusa/web/runtime.py\", line 39, in handle",
         "    yield s",
         "  File \"./web.py\", line 15, in must_error",
         "    commands.must_error()",

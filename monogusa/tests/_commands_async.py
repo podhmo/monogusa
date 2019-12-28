@@ -7,9 +7,9 @@ from monogusa import component, ignore
 
 
 async def hello(print_: t.Callable[..., t.Any]) -> None:
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.05)
     print_("hello")
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.05)
     print_("end")
 
 
@@ -22,6 +22,7 @@ def cleaup() -> None:
 
 
 @component
-def print_() -> t.Callable[..., t.Any]:
+async def print_() -> t.Callable[..., t.Any]:
     global OUTPUT
+    await asyncio.sleep(0.05)
     return partial(print, file=OUTPUT)
