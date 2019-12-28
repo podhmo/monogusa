@@ -58,7 +58,9 @@ class Resolver:
                 val = self.registry[name]
                 args.append(val)
                 if strict:
-                    assert isinstance(val, argspec.annotations[name])
+                    typ_ = argspec.annotations[name]
+                    if not hasattr(typ_, "__origin__"):  # skip generics
+                        assert isinstance(val, typ_)
                 continue
 
             if name not in g:
@@ -74,8 +76,9 @@ class Resolver:
             args.append(val)
 
             if strict:
-                assert isinstance(val, argspec.annotations[name])
-
+                typ_ = argspec.annotations[name]
+                if not hasattr(typ_, "__origin__"):  # skip generics
+                    assert isinstance(val, typ_)
         return args
 
 

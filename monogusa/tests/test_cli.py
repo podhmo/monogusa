@@ -1,3 +1,6 @@
+import pytest
+
+
 # type: ignore
 def test_create_parser():
     from . import _commands as module
@@ -19,3 +22,31 @@ subcommands:
 """
 
     assert got == want
+
+
+def test_driver():
+    import contextlib
+    from io import StringIO
+    from . import _commands as module
+    from monogusa.cli.runtime import Driver
+
+    driver = Driver()
+    with contextlib.redirect_stdout(StringIO()) as o:
+        driver.run(["hello", "--name", "foo"], module=module)
+
+    want = "Hello foo"
+    assert o.getvalue().strip() == want.strip()
+
+
+@pytest.mark.asyncio
+async def test_async_driver():
+    from . import _commands_async as module
+    from monogusa.cli.runtime import AsyncDriver
+
+    o = module.OUTPUT
+    module.cleaup()
+
+    driver = AsyncDriver()
+    await driver.run(["hello"], module=module)
+    want = "hello\nend"
+    assert o.getvalue().strip() == want.strip()

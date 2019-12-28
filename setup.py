@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 install_requires = ["handofcats", "magicalimport", "prestring"]
 dev_requires = ["black", "flake8", "mypy"]
-tests_requires = ["pytest"]
+tests_requires = ["pytest", "pytest-asyncio"]
 web_requires = ["dictknife", "pydantic", "fastapi", "uvicorn", "async-asgi-testclient"]
 
 setup(

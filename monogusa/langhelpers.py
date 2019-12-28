@@ -37,3 +37,16 @@ def run_with(
         return asyncio.run(action(*positionals, **keywords), debug=debug)
     else:
         return action(*positionals, **keywords)
+
+
+async def run_with_async(
+    action: t.Callable[..., t.Union[t.Any, t.Awaitable[t.Any]]],
+    positionals: t.Sequence[t.Any],
+    keywords: t.Mapping[str, t.Any],
+    *,
+    debug: bool = False,
+) -> t.Any:
+    if inspect.iscoroutinefunction(action):
+        return await action(*positionals, **keywords)
+    else:
+        return action(*positionals, **keywords)

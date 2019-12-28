@@ -3,7 +3,7 @@ from types import ModuleType
 import argparse
 import inspect
 from handofcats.injector import Injector
-from monogusa.langhelpers import reify, run_with
+from monogusa.langhelpers import reify, run_with, run_with_async
 from monogusa.dependencies import resolve_args, scan_module
 
 
@@ -37,7 +37,7 @@ class Driver:
 
     def _run(self, argv: t.Optional[t.List[str]] = None, debug: bool = False) -> t.Any:
         args = self.parser.parse_args(argv)
-        keywords = vars(args)
+        keywords = vars(args).copy()
         action = keywords.pop("subcommand")
 
         positionals = resolve_args(action)
@@ -57,6 +57,35 @@ class Driver:
             for fn in scan_module(module, where=where, _depth=_depth).commands:
                 self.register(fn)
         return self._run(argv, debug=debug)
+
+
+class AsyncDriver(Driver):
+    # override
+    async def _run(
+        self, argv: t.Optional[t.List[str]] = None, debug: bool = False
+    ) -> t.Any:
+        args = self.parser.parse_args(argv)
+        keywords = vars(args).copy()
+        action = keywords.pop("subcommand")
+
+        positionals = resolve_args(action)
+        return await run_with_async(action, positionals, keywords, debug=debug)
+
+    # override
+    async def run(
+        self,
+        argv: t.Optional[t.List[str]] = None,
+        *,
+        aggressive: bool = False,
+        where: t.Optional[str] = None,
+        module: t.Optional[ModuleType] = None,
+        _depth: int = 2,
+        debug: bool = False,
+    ) -> t.Any:
+        if aggressive or module:
+            for fn in scan_module(module, where=where, _depth=_depth).commands:
+                self.register(fn)
+        return await self._run(argv, debug=debug)
 
 
 def create_parser(
