@@ -1,0 +1,8 @@
+usage: 06only/commands.py [-h] {foo} ...
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+subcommands:
+  {foo}
+    foo

@@ -1,0 +1,10 @@
+usage: 06only/commands.py [-h] {foo,bar,yoo} ...
+
+optional arguments:
+  -h, --help     show this help message and exit
+
+subcommands:
+  {foo,bar,yoo}
+    foo
+    bar
+    yoo

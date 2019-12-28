@@ -1,4 +1,4 @@
-default: 00 01 02 03 04 05
+default: 00 01 02 03 04 05 06
 
 # normal usecase
 00:
@@ -40,6 +40,12 @@ default: 00 01 02 03 04 05
 05:
 	mkdir -p $(shell echo $@*/)dst
 	python -m monogusa.cli $(shell echo $@*/)commands.py hello 2>&1 | tee $(shell echo $@*/)dst/hello.txt
+
+# only marker
+06:
+	mkdir -p $(shell echo $@*/)dst
+	python -m monogusa.cli $(shell echo $@*/)commands.py -h 2>&1 | tee $(shell echo $@*/)dst/help.txt
+	python -m monogusa.cli --ignore-only $(shell echo $@*/)commands.py -h 2>&1 | tee $(shell echo $@*/)dst/help-ignore-only.txt
 
 
 clean:

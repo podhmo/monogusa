@@ -125,6 +125,8 @@ component = Marker("component")
 is_component = component.is_marked
 ignore = Marker("ignore")
 is_ignored = ignore.is_marked
+only = Marker("only")
+is_only = only.is_marked
 
 
 def get_component_marker() -> Marker:
@@ -153,6 +155,7 @@ def scan_module(
     module: t.Optional[ModuleType] = None,
     where: t.Optional[str] = None,
     _depth: int = 1,
+    ignore_only: bool = False,
 ) -> Scanned:
     if module is not None:
         _globals = module.__dict__
@@ -162,6 +165,7 @@ def scan_module(
     where = _globals["__name__"]
 
     commands = []
+    only_commands = []
     components = []
 
     for name, v in _globals.items():
@@ -174,9 +178,12 @@ def scan_module(
         if is_component(v):
             components.append(v)
         elif inspect.isfunction(v) and v.__module__ == where:
+            if is_only(v) and not ignore_only:
+                logger.debug("only, name=%r %r", name, v)
+                only_commands.append(v)
             commands.append(v)
 
-    return Scanned(commands=commands, components=components)
+    return Scanned(commands=only_commands or commands, components=components)
 
 
 @dataclasses.dataclass(frozen=True)

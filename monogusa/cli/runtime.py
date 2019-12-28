@@ -52,9 +52,12 @@ class Driver:
         module: t.Optional[ModuleType] = None,
         _depth: int = 2,
         debug: bool = False,
+        ignore_only: bool = False,
     ) -> t.Any:
         if aggressive or module:
-            for fn in scan_module(module, where=where, _depth=_depth).commands:
+            for fn in scan_module(
+                module, where=where, _depth=_depth, ignore_only=ignore_only
+            ).commands:
                 self.register(fn)
         return self._run(argv, debug=debug)
 
@@ -81,9 +84,12 @@ class AsyncDriver(Driver):
         module: t.Optional[ModuleType] = None,
         _depth: int = 2,
         debug: bool = False,
+        ignore_only: bool = False,
     ) -> t.Any:
         if aggressive or module:
-            for fn in scan_module(module, where=where, _depth=_depth).commands:
+            for fn in scan_module(
+                module, where=where, _depth=_depth, ignore_only=ignore_only
+            ).commands:
                 self.register(fn)
         return await self._run(argv, debug=debug)
 
@@ -93,9 +99,12 @@ def create_parser(
     *,
     where: t.Optional[str] = None,
     _depth: int = 2,
+    ignore_only: bool = False,
 ) -> argparse.ArgumentParser:
     driver = Driver()
-    for fn in scan_module(module, where=where, _depth=_depth).commands:
+    for fn in scan_module(
+        module, where=where, _depth=_depth, ignore_only=ignore_only
+    ).commands:
         driver.register(fn)
     return driver.parser
 

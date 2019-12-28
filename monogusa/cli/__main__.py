@@ -10,6 +10,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("file")
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--ignore-only", action="store_true")
     parser.add_argument(
         "--logging", dest="loglevel", choices=list(logging._nameToLevel.keys())
     )
@@ -20,7 +21,14 @@ def main() -> None:
     else:
         args, rest = parser.parse_known_args()
     m = import_module(args.file, cwd=True)
-    run(m, filename=args.file, args=rest, debug=args.debug, loglevel=args.loglevel)
+    run(
+        m,
+        filename=args.file,
+        args=rest,
+        debug=args.debug,
+        loglevel=args.loglevel,
+        ignore_only=args.ignore_only,
+    )
 
 
 if __name__ == "__main__":
