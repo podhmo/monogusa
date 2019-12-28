@@ -1,8 +1,8 @@
+# type: ignore
 import pytest
 
 
-# type: ignore
-def test_create_parser():
+def test_create_parser() -> None:
     from . import _commands as module
     from monogusa.cli.runtime import create_parser
 

@@ -6,7 +6,7 @@ from io import StringIO
 from monogusa import component, ignore
 
 
-async def hello(print_: t.Callable[..., t.Any]):
+async def hello(print_: t.Callable[..., t.Any]) -> None:
     await asyncio.sleep(0.1)
     print_("hello")
     await asyncio.sleep(0.1)
@@ -17,7 +17,7 @@ OUTPUT = StringIO()
 
 
 @ignore
-def cleaup():
+def cleaup() -> None:
     OUTPUT.seek(0)
 
 

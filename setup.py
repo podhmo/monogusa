@@ -23,6 +23,8 @@ setup(
         "testing": tests_requires,
         "dev": dev_requires,
         "web": web_requires,
+        "slack": ["slackbot", "python-dotenv"],
+        "discord": ["discord.py", "python-dotenv"],
     },
     tests_require=tests_requires,
     test_suite="monogusa.tests",
