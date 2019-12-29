@@ -29,6 +29,26 @@ python -m monogusa.cli cli.py list
 {'id': 2, 'text': 'go to bed', 'completed': False}
 ```
 
+## as webAPI
+
+- every endpoint is POST
+- interactive API documentation via swaggerUI
+
+```console
+$ make ui-web
+python -m monogusa.web cli.py --dst .
+[F]     update  ./web.py
+python web.py --port=55555
+Now go to http://127.0.0.1:55555/docs.
+You will see the automatic interactive API documentation 
+INFO:     Started server process [104421]
+INFO:     Uvicorn running on http://127.0.0.1:55555 (Press CTRL+C to quit)
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+```
+
+![on web](images/ui-web.png)
+
 ## as slackbot
 
 :warning: need `SLACKCLI_API_TOKEN`
@@ -38,6 +58,8 @@ $ make ui-slack
 python -m monogusa.chatbot.slackcli cli.py --name=notes
 ```
 
+![on slack](images/ui-slack.png)
+
 ## as discordbot
 
 :warning: need `DISCORDCLI_API_TOKEN`
@@ -46,3 +68,7 @@ python -m monogusa.chatbot.slackcli cli.py --name=notes
 $ make ui-discord
 python -m monogusa.chatbot.discordcli cli.py --name=notes
 ```
+
+on discord
+
+![on discord](images/ui-discord.png)
