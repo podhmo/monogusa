@@ -105,10 +105,17 @@ def create_view_code(
         if InputSchema is not None:
             args.append(f"input: {InputSchema}")
         #  for di
-        for argname, _, _ in spec.arguments:
+        for argname, typ, _ in spec.arguments:
+            if typ.__module__ != "builtins":
+                m.toplevel.import_(typ.__module__)
             args.append(helpers._spec_to_arg_value__with_depends(spec_map[argname]))
 
         with m.def_(name, *args, return_type="t.Dict[str, t.Any]"):
+            # xxx: async
+            is_coroutine = spec.is_coroutinefunction
+            if is_coroutine:
+                m.body.body[-3].fmt = f"async {m.body.body[-3].fmt}"
+
             if spec.doc is not None:
                 m.docstring(spec.doc)
             with m.with_("runtime.handle() as s"):

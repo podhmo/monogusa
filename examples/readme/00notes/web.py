@@ -10,10 +10,9 @@ from pydantic import BaseModel
 from monogusa.web import (
     runtime
 )
-import databases.core
 import sqlalchemy.engine.base
+import databases.core
 
-# TODO: fix
 
 async def db(database_url: str=Depends(cli.database_url)) -> cli.Database:
     return await cli.db(database_url)

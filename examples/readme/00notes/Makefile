@@ -13,10 +13,8 @@ ui-discord:
 	python -m monogusa.chatbot.discordcli cli.py --name=notes
 ui-slack:
 	python -m monogusa.chatbot.slackcli cli.py --name=notes
-#ui-web: web-codegen
-ui-web:
+ui-web: web-codegen
 	python web.py --port=55555
 
-# TODO: fix
 web-codegen:
 	python -m monogusa.web cli.py --dst .

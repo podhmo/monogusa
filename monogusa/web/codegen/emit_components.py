@@ -60,7 +60,9 @@ def create_component_code(
     @codeobject.codeobject
     def _component_code(m: Module, name: str) -> Module:
         args = []
-        for name, _, _ in spec.arguments:
+        for name, typ, _ in spec.arguments:
+            if typ.__module__ != "builtins":
+                m.toplevel.import_(typ.__module__)
             args.append(helpers._spec_to_arg_value__with_depends(spec_map[name]))
 
         with m.def_(
