@@ -96,4 +96,4 @@ def main(
     if token is None:
         dotenv.load_dotenv(verbose=True, dotenv_path=str(pathlib.Path.cwd() / ".env"))
         token = os.environ["SLACKBOT_API_TOKEN"]
-    run(token, module=module, name="app")
+    run(token, module=module, name=name, command_prefix=command_prefix, debug=debug)
