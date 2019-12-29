@@ -4,6 +4,7 @@ import logging
 import sys
 import inspect
 from types import ModuleType
+from collections import ChainMap
 import dataclasses
 
 from .langhelpers import run_with, run_with_async
@@ -41,9 +42,37 @@ def _get_fullargspec(fn: t.Callable[..., t.Any]) -> inspect.FullArgSpec:
 
 
 class Resolver:
-    def __init__(self, marker: Marker) -> None:
+    def __init__(self, marker: Marker, once_marker: Marker) -> None:
         self.marker = marker
+        self.once_marker = once_marker
         self.registry: t.Dict[str, t.Any] = {}
+
+    def resolve_args(
+        self,
+        fn: t.Callable[..., t.Union[t.Awaitable[t.Any], t.Any]],
+        *,
+        strict: bool = True,
+    ) -> t.List[t.Any]:
+        internal = _ResolverInternal(self)
+        return internal.resolve_args(fn, strict=strict)
+
+    async def resolve_args_async(
+        self,
+        fn: t.Callable[..., t.Union[t.Awaitable[t.Any], t.Any]],
+        *,
+        strict: bool = True,
+    ) -> t.List[t.Any]:
+        internal = _ResolverInternal(self)
+        return await internal.resolve_args_async(fn, strict=strict)
+
+
+class _ResolverInternal:
+    def __init__(self, resolver: Resolver) -> None:
+        self.marker = resolver.marker
+        self.once_marker = resolver.once_marker
+        self.registry: t.Dict[str, t.Any] = ChainMap({}, resolver.registry)
+
+        self.root_resolver = resolver
 
     def _type_check(self, val: t.Any, *, typ: t.Type[t.Any], strict: bool) -> None:
         if strict:
@@ -79,7 +108,11 @@ class Resolver:
             component_args = self.resolve_args(component_factory)
             val = run_with(component_factory, component_args, {})
 
-            self.registry[name] = val
+            # global compnent?
+            if self.once_marker.is_marked(component_factory):
+                self.root_resolver.registry[name] = val
+            else:
+                self.registry[name] = val
             args.append(val)
 
             self._type_check(val, typ=argspec.annotations[name], strict=strict)
@@ -123,6 +156,8 @@ class Resolver:
 
 component = Marker("component")
 is_component = component.is_marked
+once = Marker("once")
+is_once = once.is_marked
 ignore = Marker("ignore")
 is_ignored = ignore.is_marked
 only = Marker("only")
@@ -134,13 +169,18 @@ def get_component_marker() -> Marker:
     return component
 
 
+def get_once_marker() -> Marker:
+    global once
+    return once
+
+
 def get_ignore_marker() -> Marker:
     global ignore
     return ignore
 
 
 def get_resolver() -> Resolver:
-    return Resolver(get_component_marker())
+    return Resolver(marker=get_component_marker(), once_marker=get_once_marker())
 
 
 def resolve_args(fn: t.Callable[..., t.Any]) -> t.List[t.Any]:
