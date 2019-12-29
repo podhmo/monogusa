@@ -31,7 +31,7 @@ python -m monogusa.cli cli.py list
 
 ## as slackbot
 
-:warning: need `SLACKBOT_API_TOKEN`
+:warning: need `SLACKCLI_API_TOKEN`
 
 ```console
 $ make ui-slack
@@ -40,7 +40,7 @@ python -m monogusa.chatbot.slackcli cli.py --name=notes
 
 ## as discordbot
 
-:warning: need `DISCORDBOT_API_TOKEN`
+:warning: need `DISCORDCLI_API_TOKEN`
 
 ```console
 $ make ui-discord

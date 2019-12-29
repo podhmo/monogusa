@@ -89,5 +89,5 @@ def main(
     module = import_module(target_module, cwd=True)
     if token is None:
         dotenv.load_dotenv(verbose=True, dotenv_path=str(pathlib.Path.cwd() / ".env"))
-        token = os.environ["DISCORDBOT_API_TOKEN"]
+        token = os.environ["DISCORDCLI_API_TOKEN"]
     run(token, module=module, name=name, command_prefix=command_prefix, debug=debug)
