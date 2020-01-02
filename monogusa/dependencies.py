@@ -70,7 +70,7 @@ class _ResolverInternal:
     def __init__(self, resolver: Resolver) -> None:
         self.marker = resolver.marker
         self.once_marker = resolver.once_marker
-        self.registry: t.Dict[str, t.Any] = ChainMap({}, resolver.registry)
+        self.registry: t.MutableMapping[str, t.Any] = ChainMap({}, resolver.registry)
 
         self.root_resolver = resolver
 
