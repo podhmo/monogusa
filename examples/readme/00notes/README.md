@@ -31,7 +31,7 @@ python -m monogusa.cli cli.py list
 
 ## as webAPI
 
-- every endpoint is POST
+- all endpoints are POST
 - interactive API documentation via swaggerUI
 
 ```console
