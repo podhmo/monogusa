@@ -76,8 +76,16 @@ class _ResolverInternal:
 
     def _type_check(self, val: t.Any, *, typ: t.Type[t.Any], strict: bool) -> None:
         if strict:
-            if not hasattr(typ, "__origin__"):  # skip generics
-                assert isinstance(val, typ)
+            if hasattr(typ, "__origin__"):  # skip generics
+                logger.debug("skip type check, because this is generic type: %r", typ)
+                return
+            if getattr(typ, "_is_protocol", False):  # skip typing_extensions.Protocol
+                logger.debug(
+                    "skip type check,  because this is typing_extensions.Protocol: %r",
+                    typ,
+                )
+                return
+            assert isinstance(val, typ)
 
     def resolve_args(
         self,
