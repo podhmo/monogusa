@@ -14,6 +14,9 @@ class Fnspec:
     body: t.Callable[..., t.Any]
     argspec: inspect.FullArgSpec
     _module: t.Optional[str] = None
+    _aliases: t.Dict[str, str] = dataclasses.field(
+        default_factory=lambda: {"typing": "t"}  # xxx:
+    )
 
     @property
     def name(self) -> str:
@@ -21,7 +24,8 @@ class Fnspec:
 
     @property
     def module(self) -> str:
-        return self._module or self.body.__module__
+        m = self._module or self.body.__module__
+        return self._aliases.get(m, m)
 
     @property
     def fullname(self) -> str:
@@ -39,14 +43,31 @@ class Fnspec:
         return self._classified[name]
 
     def default_of(self, name: str) -> t.Any:
-        return self._kwonlydefaults[name]
+        return self._defaults[name]
+
+    def default_str_of(self, name: str) -> t.Any:
+        val = self.default_of(name)
+        if val is None:
+            return "None"
+        return repr(val)
 
     def type_str_of(self, typ: t.Type[t.Any]) -> str:
         if typ.__module__ == "builtins":
-            return typ.__name__
+            if typ.__name__ == "NoneType":
+                return "None"
+            else:
+                return typ.__name__
+
         if self.body.__module__ == typ.__module__:
             return f"{self.module}.{typ.__name__}"
-        return f"{typ.__module__}.{typ.__name__}"
+        if hasattr(typ, "__name__"):
+            return f"{self._aliases.get(typ.__module__, typ.__module__)}.{typ.__name__}"
+        elif hasattr(typ, "__origin__"):  # for typing.Union, typing.Optional, ...
+            return f"{self._aliases.get(typ.__module__, typ.__module__)}.{typ.__origin__._name}[{', '.join(self.type_str_of(x) for x in typ.__args__)}]"
+        return str(typ).replace(
+            typ.__module__ + ".",
+            self._aliases.get(typ.__module__, typ.__module__) + ".",
+        )  # xxx
 
     @reify
     def parameters(self) -> t.List[t.Tuple[str, t.Type[t.Any], Kind]]:
@@ -83,8 +104,14 @@ class Fnspec:
         return _classify_args(self.argspec)
 
     @reify
-    def _kwonlydefaults(self) -> t.Dict[str, t.Any]:
-        return self.argspec.kwonlydefaults or {}
+    def _defaults(self) -> t.Dict[str, t.Any]:
+        defaults = self.argspec.kwonlydefaults or {}
+        if self.argspec.defaults:
+            for val, name in zip(
+                reversed(self.argspec.defaults), reversed(self.argspec.args)
+            ):
+                defaults[name] = val
+        return defaults
 
 
 def fnspec(fn: t.Callable[..., t.Any]) -> Fnspec:
@@ -97,7 +124,7 @@ def fnspec(fn: t.Callable[..., t.Any]) -> Fnspec:
     return spec
 
 
-Kind = tx.Literal["args", "args_defaults", "kw", "kw_defaults"]
+Kind = tx.Literal["args", "args_defaults", "kw", "kw_defaults", "var_args", "var_kw"]
 
 
 def _classify_args(spec: inspect.FullArgSpec) -> t.Dict[str, Kind]:
@@ -111,4 +138,8 @@ def _classify_args(spec: inspect.FullArgSpec) -> t.Dict[str, Kind]:
         classified[k] = "kw"
     for k in spec.kwonlydefaults or []:
         classified[k] = "kw_defaults"
+    if spec.varkw:
+        classified[spec.varkw] = "var_kw"
+    if spec.varargs:
+        classified[spec.varargs] = "var_args"
     return classified

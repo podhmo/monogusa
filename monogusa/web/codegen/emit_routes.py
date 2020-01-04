@@ -68,10 +68,10 @@ def create_input_schema_code(spec: fnspec.Fnspec,) -> codeobject.Object:
                     m.stmt("{}: {}", name, spec.type_str_of(typ))
                 elif kind == "kw_defaults":
                     m.stmt(
-                        "{}: {}  = {!r}",
+                        "{}: {} = {}",
                         name,
                         spec.type_str_of(typ),
-                        spec.default_of(name),
+                        spec.default_str_of(name),
                     )
                 else:
                     raise ValueError(f"invalid kind. name={name}, kind={kind}")
