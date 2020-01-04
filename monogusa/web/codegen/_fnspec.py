@@ -69,7 +69,8 @@ class Fnspec:
                 args = [x for x in args if x is not nonetype]
                 if len(args) == 1:
                     return f"{prefix}.Optional[{self.type_str_of(args[0])}]"
-            return f"{prefix}.{typ.__origin__._name}[{', '.join(self.type_str_of(x) for x in args)}]"
+            name = getattr(typ, "_name") or getattr(typ.__origin__, "_name")
+            return f"{prefix}.{name}[{', '.join(self.type_str_of(x) for x in args)}]"
         return str(typ).replace(
             typ.__module__ + ".",
             self._aliases.get(typ.__module__, typ.__module__) + ".",
