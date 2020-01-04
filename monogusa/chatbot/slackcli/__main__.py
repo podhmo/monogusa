@@ -1,6 +1,7 @@
 import typing as t
 import handofcats
 from monogusa.chatbot.slackcli import cli
+from monogusa.chatbot.slackcli import runtime
 
 
 @handofcats.as_command  # type: ignore
@@ -13,17 +14,12 @@ def run(
     debug: bool = True,
 ) -> None:
     import logging
-    import os
-    import pathlib
     from magicalimport import import_module
-    import dotenv
 
     logging.basicConfig(level=logging.DEBUG)
     module = import_module(target_module, cwd=True)
 
-    if token is None:
-        dotenv.load_dotenv(verbose=True, dotenv_path=str(pathlib.Path.cwd() / ".env"))
-        token = os.environ["SLACKCLI_API_TOKEN"]
+    token = token or runtime.api_token()
     cli.run_bot(
         token, module=module, name=name, command_prefix=command_prefix, debug=debug
     )
