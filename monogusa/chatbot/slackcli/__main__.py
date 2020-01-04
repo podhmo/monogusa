@@ -1,7 +1,7 @@
 import typing as t
 import handofcats
 from monogusa.chatbot.slackcli import cli
-from monogusa.chatbot.slackcli import runtime
+from monogusa.chatbot.slackcli import component
 
 
 @handofcats.as_command  # type: ignore
@@ -19,7 +19,7 @@ def run(
     logging.basicConfig(level=logging.DEBUG)
     module = import_module(target_module, cwd=True)
 
-    token = token or runtime.api_token()
+    token = token or component.api_token()
     cli.run_bot(
         token, module=module, name=name, command_prefix=command_prefix, debug=debug
     )

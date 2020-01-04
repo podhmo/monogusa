@@ -7,7 +7,7 @@ import monogusa
 
 @monogusa.component
 def api_token(
-    *, dotenv_path: t.Optional[str] = None, envvar="SLACKCLI_API_TOKEN"
+    *, dotenv_path: t.Optional[str] = None, envvar: str = "SLACKCLI_API_TOKEN"
 ) -> str:
     """load api token"""
     import dotenv
@@ -29,7 +29,7 @@ class APIClient(tx.Protocol):
         attachments: t.Optional[t.Any] = None,
         as_user: bool = True,
         thread_ts: t.Optional[t.Any] = None,
-    ):
+    ) -> None:
         ...
 
 
@@ -44,10 +44,11 @@ def api_client(
 ) -> APIClient:
     from slackbot.slackclient import SlackClient
 
-    return SlackClient(
+    client = SlackClient(
         api_token,
         timeout=timeout,
         bot_icon=bot_icon,
         bot_emoji=bot_emoji,
         connect=connect,
     )
+    return t.cast(APIClient, client)  # xxx:
