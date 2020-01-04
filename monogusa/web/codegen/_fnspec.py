@@ -51,7 +51,7 @@ class Fnspec:
             return "None"
         return repr(val)
 
-    def type_str_of(self, typ: t.Type[t.Any]) -> str:
+    def type_str_of(self, typ: t.Type[t.Any], *, nonetype=type(None)) -> str:
         if typ.__module__ == "builtins":
             if typ.__name__ == "NoneType":
                 return "None"
@@ -63,7 +63,13 @@ class Fnspec:
         if hasattr(typ, "__name__"):
             return f"{self._aliases.get(typ.__module__, typ.__module__)}.{typ.__name__}"
         elif hasattr(typ, "__origin__"):  # for typing.Union, typing.Optional, ...
-            return f"{self._aliases.get(typ.__module__, typ.__module__)}.{typ.__origin__._name}[{', '.join(self.type_str_of(x) for x in typ.__args__)}]"
+            prefix = self._aliases.get(typ.__module__, typ.__module__)
+            args = typ.__args__
+            if typ.__origin__ == t.Union and len(args) == 2:
+                args = [x for x in args if x is not nonetype]
+                if len(args) == 1:
+                    return f"{prefix}.Optional[{self.type_str_of(args[0])}]"
+            return f"{prefix}.{typ.__origin__._name}[{', '.join(self.type_str_of(x) for x in args)}]"
         return str(typ).replace(
             typ.__module__ + ".",
             self._aliases.get(typ.__module__, typ.__module__) + ".",

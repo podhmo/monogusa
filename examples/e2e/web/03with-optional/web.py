@@ -11,7 +11,7 @@ router = APIRouter()
 
 class HelloInput(BaseModel):
     name: str
-    nickname: t.Union[str, None] = None
+    nickname: t.Optional[str] = None
 
 
 @router.post("/hello", response_model=runtime.CommandOutput)
