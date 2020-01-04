@@ -47,8 +47,6 @@ class Fnspec:
 
     def default_str_of(self, name: str) -> t.Any:
         val = self.default_of(name)
-        if val is None:
-            return "None"
         return repr(val)
 
     def type_str_of(self, typ: t.Type[t.Any], *, nonetype=type(None)) -> str:
