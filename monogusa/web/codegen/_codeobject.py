@@ -29,7 +29,8 @@ class Module(_Module):  # type: ignore
         assigned.emit(m=self)
         return assigned
 
-    assign = let  # alias
+    def setattr(self, co: Emittable, name: str, val: t.Any):
+        self.stmt("{}.{} = {}", co, name, as_string(val))
 
 
 class Emittable(tx.Protocol):
