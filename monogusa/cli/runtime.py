@@ -3,6 +3,7 @@ from types import ModuleType
 import argparse
 import inspect
 from handofcats.injector import Injector
+from handofcats.customize import logging_setup
 from monogusa.langhelpers import reify, run_with, run_with_async
 from monogusa.dependencies import scan_module, resolve_args, resolve_args_async
 
@@ -48,10 +49,15 @@ class Driver:
         return fn
 
     def _run(self, argv: t.Optional[t.List[str]] = None, debug: bool = False) -> t.Any:
+        activate_functions = [logging_setup(self.parser)]
+
         args = self.parser.parse_args(argv)
         keywords = vars(args).copy()
-        action = keywords.pop("subcommand")
 
+        for activate in activate_functions:
+            activate(keywords)
+
+        action = keywords.pop("subcommand")
         positionals = resolve_args(action)
         return run_with(action, positionals, keywords, debug=debug)
 
