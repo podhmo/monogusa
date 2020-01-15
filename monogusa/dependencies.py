@@ -210,7 +210,8 @@ def scan_module(
 
     for name, v in _globals.items():
         if name.startswith("_"):
-            logger.debug("skip, name=%r is ignored", name)
+            if not name.endswith("_"):
+                logger.debug("skip, name=%r is ignored", name)
             continue
         if is_ignored(v):
             logger.debug("skip, name=%r %r is ignored", name, v)
