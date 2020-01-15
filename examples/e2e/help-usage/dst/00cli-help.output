@@ -1,0 +1,4 @@
+usage: __main__.py [--debug] [--ignore-only]
+                   [--logging {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}]
+                   file
+__main__.py: error: the following arguments are required: file

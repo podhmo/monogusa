@@ -1,0 +1,20 @@
+usage: main [-h] [--token TOKEN] [--name NAME]
+            [--command-prefix COMMAND_PREFIX] [--debug] [--expose] [--inplace]
+            [--untyped]
+            [--logging {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}]
+            target_module
+
+positional arguments:
+  target_module         -
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --token TOKEN         - (default: None)
+  --name NAME           - (default: app)
+  --command-prefix COMMAND_PREFIX
+                        - (default: $)
+  --debug               - (default: True)
+  --expose              dump generated code. with --inplace, eject from handofcats dependency (default: False)
+  --inplace             overwrite file (default: False)
+  --untyped             untyped expression is dumped (default: False)
+  --logging {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}

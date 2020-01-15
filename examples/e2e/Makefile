@@ -1,4 +1,4 @@
-default: cli web
+default: cli web help-usage
 
 cli:
 	$(MAKE) -C $@ clean
@@ -9,3 +9,7 @@ web:
 	$(MAKE) -C $@ clean
 	$(MAKE) -C $@
 .PHONY: web
+
+help-usage:
+	$(MAKE) -C $@
+.PHONY: help-usage
