@@ -49,7 +49,7 @@ class Driver:
         return fn
 
     def _run(self, argv: t.Optional[t.List[str]] = None, debug: bool = False) -> t.Any:
-        activate_functions = [logging_setup(self.parser)]
+        activate_functions = [logging_setup(self.parser, debug=debug)]
 
         args = self.parser.parse_args(argv)
         keywords = vars(args).copy()
