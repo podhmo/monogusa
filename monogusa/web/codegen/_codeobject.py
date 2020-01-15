@@ -29,7 +29,7 @@ class Module(_Module):  # type: ignore
         assigned.emit(m=self)
         return assigned
 
-    def setattr(self, co: Emittable, name: str, val: t.Any):
+    def setattr(self, co: Emittable, name: str, val: t.Any) -> None:
         self.stmt("{}.{} = {}", co, name, as_string(val))
 
 
