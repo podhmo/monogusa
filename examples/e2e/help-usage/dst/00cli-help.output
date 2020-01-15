@@ -1,4 +1,2 @@
-usage: monogusa.cli [--debug] [--ignore-only]
-                    [--logging {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}]
-                    file
+usage: monogusa.cli [--debug] [--ignore-only] file
 monogusa.cli: error: the following arguments are required: file

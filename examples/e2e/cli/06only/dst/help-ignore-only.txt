@@ -1,7 +1,10 @@
-usage: 06only/commands.py [-h] {foo,bar,yoo} ...
+usage: 06only/commands.py [-h]
+                          [--logging {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}]
+                          {foo,bar,yoo} ...
 
 optional arguments:
-  -h, --help     show this help message and exit
+  -h, --help            show this help message and exit
+  --logging {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}
 
 subcommands:
   {foo,bar,yoo}

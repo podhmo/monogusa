@@ -1,8 +1,9 @@
-INFO:01async.commands:start
+** handofcats.customize: DEBUG=1, activate logging **
+level:INFO	name:01async.commands	where:commands.py:8	message:start
 0 xxx False
 0 yyy False
 1 xxx False
 1 yyy False
 2 xxx False
 2 yyy False
-INFO:01async.commands:end
+level:INFO	name:01async.commands	where:commands.py:10	message:end
