@@ -2,6 +2,7 @@ test:
 	pytest -vv --show-capture=all
 
 ci:
+#	pip install pytest pytest-cov
 	pytest --show-capture=all --cov=monogusa --no-cov-on-fail --cov-report term-missing
 	$(MAKE) lint typing
 
