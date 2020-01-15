@@ -7,6 +7,12 @@ from monogusa.langhelpers import reify, run_with, run_with_async
 from monogusa.dependencies import scan_module, resolve_args, resolve_args_async
 
 
+class _HelpFormatter(
+    argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter
+):
+    pass
+
+
 class Driver:
     def __init__(
         self,
@@ -15,7 +21,9 @@ class Driver:
         prog: t.Optional[str] = None,
         subcommand_title: str = "subcommands",
     ):
-        self.parser = parser or argparse.ArgumentParser(prog=prog)
+        self.parser = parser or argparse.ArgumentParser(
+            prog=prog, formatter_class=_HelpFormatter
+        )
         self.subcommand_title = subcommand_title
 
     @reify
@@ -27,7 +35,11 @@ class Driver:
         return subparesrs
 
     def register(self, fn: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:
-        sub_parser = self.subparsers.add_parser(fn.__name__, help=_get_summary(fn))
+        sub_parser = self.subparsers.add_parser(
+            fn.__name__,
+            help=_get_summary(fn),
+            formatter_class=self.parser.formatter_class,
+        )
 
         # NOTE: positional arguments are treated as component
         Injector(fn).inject(sub_parser, ignore_arguments=True)

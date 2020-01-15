@@ -1,13 +1,16 @@
 import sys
 import argparse
 from monogusa.cli import run
+from monogusa.cli import runtime
 from magicalimport import import_module
 
 
 def main() -> None:
     import logging
 
-    parser = argparse.ArgumentParser(add_help=False)
+    parser = argparse.ArgumentParser(
+        prog="monogusa.cli", add_help=False, formatter_class=runtime._HelpFormatter,
+    )
     parser.add_argument("file")
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--ignore-only", action="store_true")

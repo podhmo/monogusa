@@ -1,6 +1,5 @@
 usage: main [-h] [--token TOKEN] [--name NAME]
-            [--command-prefix COMMAND_PREFIX] [--debug] [--expose] [--inplace]
-            [--untyped]
+            [--command-prefix COMMAND_PREFIX] [--debug]
             [--logging {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}]
             target_module
 
@@ -14,7 +13,4 @@ optional arguments:
   --command-prefix COMMAND_PREFIX
                         - (default: $)
   --debug               - (default: True)
-  --expose              dump generated code. with --inplace, eject from handofcats dependency (default: False)
-  --inplace             overwrite file (default: False)
-  --untyped             untyped expression is dumped (default: False)
   --logging {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}

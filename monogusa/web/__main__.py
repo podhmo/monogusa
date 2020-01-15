@@ -1,11 +1,11 @@
 import typing as t
 import pathlib
-from handofcats import as_command
+from handofcats import as_command, Config
 from magicalimport import import_module
 from monogusa.web.codegen import codegen
 
 
-@as_command  # type: ignore
+@as_command(config=Config(ignore_expose=True))  # type: ignore
 def run(
     target_module: str,
     *,

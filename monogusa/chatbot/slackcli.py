@@ -75,7 +75,7 @@ def run(
     bot.run()
 
 
-@handofcats.as_command  # type: ignore
+@handofcats.as_command(config=handofcats.Config(ignore_expose=True))  # type: ignore
 def main(
     target_module: str,
     *,

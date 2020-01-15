@@ -2,4 +2,4 @@ usage: 00call/commands.py bye [-h] [--name NAME]
 
 optional arguments:
   -h, --help   show this help message and exit
-  --name NAME  (default: 'world')
+  --name NAME  - (default: world)

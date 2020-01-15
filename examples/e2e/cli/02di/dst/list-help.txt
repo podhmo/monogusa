@@ -2,4 +2,4 @@ usage: 02di/commands.py list [-h] [--uncompleted]
 
 optional arguments:
   -h, --help     show this help message and exit
-  --uncompleted
+  --uncompleted  - (default: False)

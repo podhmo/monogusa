@@ -1,5 +1,4 @@
-usage: run [-h] [--dry-run] [--dst DST] [--ignore-only] [--expose] [--inplace]
-           [--untyped]
+usage: run [-h] [--dry-run] [--dst DST] [--ignore-only]
            [--logging {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}]
            target_module
 
@@ -11,7 +10,4 @@ optional arguments:
   --dry-run             - (default: False)
   --dst DST             - (default: None)
   --ignore-only         - (default: False)
-  --expose              dump generated code. with --inplace, eject from handofcats dependency (default: False)
-  --inplace             overwrite file (default: False)
-  --untyped             untyped expression is dumped (default: False)
   --logging {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}
