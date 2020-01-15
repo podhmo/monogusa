@@ -49,7 +49,9 @@ class Fnspec:
         val = self.default_of(name)
         return repr(val)
 
-    def type_str_of(self, typ: t.Type[t.Any], *, nonetype=type(None)) -> str:
+    def type_str_of(
+        self, typ: t.Type[t.Any], *, nonetype: t.Type[t.Any] = type(None)
+    ) -> str:
         if typ.__module__ == "builtins":
             if typ.__name__ == "NoneType":
                 return "None"
