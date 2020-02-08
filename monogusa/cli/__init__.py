@@ -11,7 +11,7 @@ def run(
     debug: bool = False,
     _depth: int = 3,
     ignore_only: bool = False,
-) -> None:
+) -> t.Any:
     from monogusa.cli.runtime import Driver
 
     if setup is None:
@@ -21,7 +21,7 @@ def run(
     setup()
 
     driver = Driver(prog=filename)
-    driver.run(
+    return driver.run(
         args,
         module=module,
         debug=debug,

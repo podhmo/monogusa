@@ -1,3 +1,4 @@
+import typing as t
 import sys
 import argparse
 from monogusa.cli import run
@@ -16,6 +17,7 @@ def main() -> None:
     parser.add_argument("--ignore-only", action="store_true")
 
     activate_logging = logging_setup(parser, debug=False)
+
     if "-" in sys.argv:
         i = sys.argv.index("-")
         raw_args, rest = sys.argv[1:i], sys.argv[i + 1 :]
@@ -26,13 +28,32 @@ def main() -> None:
 
     m = import_module(args.file, cwd=True)
 
-    run(
+    retval = run(
         m,
         filename=args.file,
         args=rest,
         debug=args.debug,
         ignore_only=args.ignore_only,
     )
+
+    if retval is None:
+        return
+
+    if args.cont is None:
+        cont = default_continuation
+    else:
+        from magicalimport import import_symbol
+
+        cont = import_symbol(args.cont)
+    cont(retval)
+
+
+def default_continuation(x: t.Any) -> None:
+    from monogusa import extjson
+    import sys
+
+    extjson.dump(x, sys.stdout)
+    print("")
 
 
 if __name__ == "__main__":
