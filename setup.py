@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 
-install_requires = ["handofcats", "magicalimport", "prestring"]
+install_requires = ["handofcats>=3.1.1", "magicalimport", "prestring"]
 dev_requires = ["black", "flake8", "mypy"]
 tests_requires = ["pytest", "pytest-asyncio"]
 web_requires = ["dictknife", "pydantic", "fastapi", "uvicorn", "async-asgi-testclient"]
