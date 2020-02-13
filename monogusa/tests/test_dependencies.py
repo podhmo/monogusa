@@ -125,3 +125,54 @@ def test_for_global_component():
     assert args2[1] != args1[1]
 
     assert called_count == {"a": 1, "b": 1, "c": 2}
+
+
+def test_for_default_component():
+    # registered by type = default component
+
+    from monogusa.dependencies import Marker
+    from monogusa.dependencies import Resolver
+    from functools import partial
+    from collections import defaultdict
+
+    marker = Marker("_marker")
+    as_default = partial(marker, default=True)
+    once_marker = Marker("_once_marker")
+    as_default_once = partial(once_marker, default=True)
+    called_count = defaultdict(int)
+
+    class LocalObject:
+        pass
+
+    class OnceObject:
+        pass
+
+    @as_default
+    def local_object() -> LocalObject:
+        called_count[local_object.__name__] += 1
+        return LocalObject()
+
+    @as_default_once
+    def once_object() -> OnceObject:
+        called_count[once_object.__name__] += 1
+        return OnceObject()
+
+    def use(f: LocalObject, g: OnceObject) -> None:
+        called_count[use.__name__] += 1
+
+    resolver = Resolver(marker, once_marker=once_marker)
+
+    args1 = resolver.resolve_args(use, strict=True)
+    assert len(args1) == 2
+    assert isinstance(args1[0], LocalObject)
+    assert isinstance(args1[1], OnceObject)
+
+    assert called_count == {"local_object": 1, "once_object": 1}
+
+    # second time
+    args2 = resolver.resolve_args(use, strict=True)
+    assert len(args2) == 2
+    assert isinstance(args2[0], LocalObject)
+    assert isinstance(args2[1], OnceObject)
+
+    assert called_count == {"local_object": 2, "once_object": 1}

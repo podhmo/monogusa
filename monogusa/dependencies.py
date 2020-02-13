@@ -5,6 +5,7 @@ import sys
 import inspect
 from types import ModuleType
 from collections import ChainMap
+from functools import partial
 import dataclasses
 
 from .langhelpers import run_with, run_with_async
@@ -14,14 +15,24 @@ logger = logging.getLogger(__name__)
 
 class Marker:
     pool: t.Dict[str, t.Callable[..., t.Any]]
+    default_pool: t.Dict[t.Type[t.Any], t.Callable[..., t.Any]]
 
     def __init__(self, name: str) -> None:
         self.name = name
         self.pool = {}
+        self.default_pool = {}
 
-    def __call__(self, fn: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:
+    def __call__(
+        self, fn: t.Callable[..., t.Any], *, default: bool = False
+    ) -> t.Callable[..., t.Any]:
         self.pool[fn.__name__] = fn
         setattr(fn, f"_marked_as_{self.name}", True)
+
+        if default:
+            ret_type = _get_fullargspec(fn).annotations.get("return")
+            if ret_type is None:
+                raise ValueError("please t.Callable[..., T]")
+            self.default_pool[ret_type] = fn
         return fn
 
     def is_marked(self, fn: t.Callable[..., t.Any]) -> bool:
@@ -99,12 +110,28 @@ class _ResolverInternal:
                 self._type_check(val, typ=argspec.annotations[name], strict=strict)
                 continue
 
-            if name not in g:
-                raise ValueError(
-                    f"component ({name} : {argspec.annotations.get(name)}) is not found"
-                )
+            if name in g:
+                component_factory = g[name]
+            else:
+                typ = argspec.annotations.get(name)
+                if typ is None:
+                    raise ValueError(
+                        f"component ({name} : {argspec.annotations.get(name)}) is not found"
+                    )
 
-            component_factory = g[name]
+                logger.debug("lookup default component, type=%r", typ)
+                factory = self.marker.default_pool.get(typ)
+                if factory is not None:
+                    component_factory = factory
+                else:
+                    factory = self.once_marker.default_pool.get(typ)
+                    if factory is not None:
+                        component_factory = factory
+                    else:
+                        raise ValueError(
+                            f"component ({name} : {argspec.annotations.get(name)}) is not found"
+                        )
+
             component_args = self.resolve_args(component_factory)
             val = run_with(component_factory, component_args, {})
 
@@ -155,8 +182,10 @@ class _ResolverInternal:
 
 
 component = Marker("component")
+default_component = partial(component, default=True)
 is_component = component.is_marked
 once = Marker("once")
+default_once = partial(once, default=True)
 is_once = once.is_marked
 ignore = Marker("ignore")
 is_ignored = ignore.is_marked
