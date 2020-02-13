@@ -88,7 +88,7 @@ class _ResolverInternal:
     def _type_check(self, val: t.Any, *, typ: t.Type[t.Any], strict: bool) -> None:
         if strict:
             if not hasattr(typ, "__origin__"):  # skip generics
-                assert isinstance(val, typ)
+                assert isinstance(val, typ), f"{val!r} is not instance of {typ!r}"
 
     def resolve_args(
         self,
