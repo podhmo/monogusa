@@ -90,6 +90,32 @@ class _ResolverInternal:
             if not hasattr(typ, "__origin__"):  # skip generics
                 assert isinstance(val, typ), f"{val!r} is not instance of {typ!r}"
 
+    def _lookup_component_factory(
+        self, argspec: inspect.FullArgSpec, name: str
+    ) -> t.Callable[..., t.Any]:
+        factory = self.marker.pool.get(name)
+        if factory is not None:
+            return factory
+
+        typ = argspec.annotations.get(name)
+        if typ is None:
+            raise ValueError(
+                f"component ({name} : {argspec.annotations.get(name)}) is not found"
+            )
+
+        logger.debug("lookup default component, type=%r", typ)
+        factory = self.marker.default_pool.get(typ)
+        if factory is not None:
+            return factory
+
+        factory = self.once_marker.default_pool.get(typ)
+        if factory is not None:
+            return factory
+
+        raise ValueError(
+            f"component ({name} : {argspec.annotations.get(name)}) is not found"
+        )
+
     def resolve_args(
         self,
         fn: t.Callable[..., t.Union[t.Awaitable[t.Any], t.Any]],
@@ -110,28 +136,7 @@ class _ResolverInternal:
                 self._type_check(val, typ=argspec.annotations[name], strict=strict)
                 continue
 
-            if name in g:
-                component_factory = g[name]
-            else:
-                typ = argspec.annotations.get(name)
-                if typ is None:
-                    raise ValueError(
-                        f"component ({name} : {argspec.annotations.get(name)}) is not found"
-                    )
-
-                logger.debug("lookup default component, type=%r", typ)
-                factory = self.marker.default_pool.get(typ)
-                if factory is not None:
-                    component_factory = factory
-                else:
-                    factory = self.once_marker.default_pool.get(typ)
-                    if factory is not None:
-                        component_factory = factory
-                    else:
-                        raise ValueError(
-                            f"component ({name} : {argspec.annotations.get(name)}) is not found"
-                        )
-
+            component_factory = self._lookup_component_factory(argspec, name)
             component_args = self.resolve_args(component_factory)
             val = run_with(component_factory, component_args, {})
 
@@ -153,8 +158,7 @@ class _ResolverInternal:
     ) -> t.List[t.Any]:
         argspec = _get_fullargspec(fn)
 
-        g = self.marker.pool
-        if not argspec.args and fn.__name__ in g:
+        if not argspec.args and fn.__name__ in self.marker.pool:
             return []
 
         args = []
@@ -165,16 +169,15 @@ class _ResolverInternal:
                 self._type_check(val, typ=argspec.annotations[name], strict=strict)
                 continue
 
-            if name not in g:
-                raise ValueError(
-                    f"component ({name} : {argspec.annotations.get(name)}) is not found"
-                )
-
-            component_factory = g[name]
+            component_factory = self._lookup_component_factory(argspec, name)
             component_args = await self.resolve_args_async(component_factory)
             val = await run_with_async(component_factory, component_args, {})
 
-            self.registry[name] = val
+            # global component?
+            if self.once_marker.is_marked(component_factory):
+                self.root_resolver.registry[name] = val
+            else:
+                self.registry[name] = val
             args.append(val)
 
             self._type_check(val, typ=argspec.annotations[name], strict=strict)
