@@ -1,8 +1,8 @@
-INFO:01async.commands:start
+level:INFO	name:01async.commandsL8	message:start
 0 xxx True
 0 yyy True
 1 xxx True
 1 yyy True
 2 xxx True
 2 yyy True
-INFO:01async.commands:end
+level:INFO	name:01async.commandsL10	message:end

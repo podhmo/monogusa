@@ -13,7 +13,7 @@
         "Traceback (most recent call last):",
         "  File \"ROOT/monogusa/web/runtime.py\", line 39, in handle",
         "    yield s",
-        "  File \"./web.py\", line 15, in must_error",
+        "  File \"./web.py\", line 19, in must_error",
         "    commands.must_error()",
         "  File \"./commands.py\", line 3, in must_error",
         "    1 / 0",
