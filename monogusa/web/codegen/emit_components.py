@@ -69,22 +69,14 @@ def create_component_code(
             spec.name,
             LazyArguments(args),
             return_type=f"{spec.module}.{_type_value(spec.return_type)}",
+            async_=spec.is_coroutinefunction,
         ):
-            # xxx: async
-            is_coroutine = spec.is_coroutinefunction
-            if is_coroutine:
-                m.body.body[-3].fmt = f"async {m.body.body[-3].fmt}"
-
             m.return_(
                 "{}({})",
                 spec.fullname,
                 LazyArguments([name for name, _, _ in spec.arguments]),
+                await_=spec.is_coroutinefunction,
             )
-            # xxx: await
-            if is_coroutine:
-                m.body.body[-2].fmt = m.body.body[-2].fmt.replace(
-                    "return ", "return await "
-                )
         return m
 
     _component_code.name == spec.name

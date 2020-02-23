@@ -110,11 +110,12 @@ def create_view_code(
                 m.toplevel.import_(typ.__module__)
             args.append(helpers._spec_to_arg_value__with_depends(spec_map[argname]))
 
-        with m.def_(name, *args, return_type="t.Dict[str, t.Any]"):
-            # xxx: async
-            is_coroutine = spec.is_coroutinefunction
-            if is_coroutine:
-                m.body.body[-3].fmt = f"async {m.body.body[-3].fmt}"
+        with m.def_(
+            name,
+            *args,
+            return_type="t.Dict[str, t.Any]",
+            async_=spec.is_coroutinefunction,
+        ):
 
             if spec.doc is not None:
                 m.docstring(spec.doc)
@@ -123,11 +124,8 @@ def create_view_code(
                 if InputSchema is not None:
                     args.append("**input.dict()")
 
-                # xxx: await
-                prefix = spec.fullname
-                if spec.is_coroutinefunction:
-                    prefix = f"await {prefix}"
-                m.stmt("{}({})", prefix, LazyArguments(args))
+                prefix = "await " if spec.is_coroutinefunction else ""
+                m.stmt("{}{}({})", prefix, spec.fullname, LazyArguments(args))
             m.stmt("return s.dict()")
         return m
 
