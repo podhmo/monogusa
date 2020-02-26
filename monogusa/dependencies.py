@@ -62,19 +62,21 @@ class Resolver:
         self,
         fn: t.Callable[..., t.Union[t.Awaitable[t.Any], t.Any]],
         *,
+        i: int = 0,
         strict: bool = True,
     ) -> t.List[t.Any]:
         internal = _ResolverInternal(self)
-        return internal.resolve_args(fn, strict=strict)
+        return internal.resolve_args(fn, i=i, strict=strict)
 
     async def resolve_args_async(
         self,
         fn: t.Callable[..., t.Union[t.Awaitable[t.Any], t.Any]],
         *,
+        i: int = 0,
         strict: bool = True,
     ) -> t.List[t.Any]:
         internal = _ResolverInternal(self)
-        return await internal.resolve_args_async(fn, strict=strict)
+        return await internal.resolve_args_async(fn, i=i, strict=strict)
 
 
 class _ResolverInternal:
@@ -120,6 +122,7 @@ class _ResolverInternal:
         self,
         fn: t.Callable[..., t.Union[t.Awaitable[t.Any], t.Any]],
         *,
+        i: int = 0,
         strict: bool = True,
     ) -> t.List[t.Any]:
         argspec = _get_fullargspec(fn)
@@ -128,8 +131,8 @@ class _ResolverInternal:
         if not argspec.args and fn.__name__ in g:
             return []
 
-        args = []
-        for name in argspec.args:
+        args = [None for i in range(i)] if i else []
+        for name in argspec.args[i:]:
             if name in self.registry:
                 val = self.registry[name]
                 args.append(val)
@@ -154,6 +157,7 @@ class _ResolverInternal:
         self,
         fn: t.Callable[..., t.Union[t.Awaitable[t.Any], t.Any]],
         *,
+        i: int = 0,
         strict: bool = True,
     ) -> t.List[t.Any]:
         argspec = _get_fullargspec(fn)
@@ -161,8 +165,8 @@ class _ResolverInternal:
         if not argspec.args and fn.__name__ in self.marker.pool:
             return []
 
-        args = []
-        for name in argspec.args:
+        args = [None for i in range(i)] if i else []
+        for name in argspec.args[i:]:
             if name in self.registry:
                 val = self.registry[name]
                 args.append(val)
@@ -215,12 +219,14 @@ def get_resolver() -> Resolver:
     return Resolver(marker=get_component_marker(), once_marker=get_once_marker())
 
 
-def resolve_args(fn: t.Callable[..., t.Any]) -> t.List[t.Any]:
-    return get_resolver().resolve_args(fn)
+def resolve_args(fn: t.Callable[..., t.Any], *, i: int = 0) -> t.List[t.Any]:
+    return get_resolver().resolve_args(fn, i=i)
 
 
-async def resolve_args_async(fn: t.Callable[..., t.Any]) -> t.List[t.Any]:
-    return await get_resolver().resolve_args_async(fn)
+async def resolve_args_async(
+    fn: t.Callable[..., t.Any], *, i: int = 0
+) -> t.List[t.Any]:
+    return await get_resolver().resolve_args_async(fn, i=i)
 
 
 def scan_module(

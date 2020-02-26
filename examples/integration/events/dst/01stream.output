@@ -1,0 +1,4 @@
+reply message: got foo
+send message(random): foo
+reply message: got bar
+send message(random): bar

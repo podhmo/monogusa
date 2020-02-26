@@ -25,6 +25,7 @@ def main() -> None:
     activate_logging(vars(args).copy())
 
     m = import_module(args.file, cwd=True)
+
     run(
         m,
         filename=args.file,
