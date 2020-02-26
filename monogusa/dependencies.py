@@ -53,10 +53,19 @@ def _get_fullargspec(fn: t.Callable[..., t.Any]) -> inspect.FullArgSpec:
 
 
 class Resolver:
-    def __init__(self, marker: Marker, once_marker: Marker) -> None:
+    def __init__(
+        self,
+        marker: Marker,
+        once_marker: Marker,
+        *,
+        registry: t.Optional[t.Dict[str.t.Any]] = None,
+    ) -> None:
         self.marker = marker
         self.once_marker = once_marker
-        self.registry: t.Dict[str, t.Any] = {}
+
+        if registry is None:
+            registry = {}
+        self.registry = registry
 
     def resolve_args(
         self,
@@ -93,30 +102,21 @@ class _ResolverInternal:
                 assert isinstance(val, typ), f"{val!r} is not instance of {typ!r}"
 
     def _lookup_component_factory(
-        self, argspec: inspect.FullArgSpec, name: str
-    ) -> t.Callable[..., t.Any]:
-        factory = self.marker.pool.get(name)
-        if factory is not None:
-            return factory
-
-        typ = argspec.annotations.get(name)
-        if typ is None:
-            raise ValueError(
-                f"component ({name} : {argspec.annotations.get(name)}) is not found"
-            )
-
-        logger.debug("lookup default component, type=%r", typ)
-        factory = self.marker.default_pool.get(typ)
-        if factory is not None:
-            return factory
-
-        factory = self.once_marker.default_pool.get(typ)
-        if factory is not None:
-            return factory
-
-        raise ValueError(
-            f"component ({name} : {argspec.annotations.get(name)}) is not found"
-        )
+        self, argspec: inspect.FullArgSpec, k: t.Tuple[[t.Optional, t.Type[t.Any]]]
+    ) -> t.Optional[t.Callable[..., t.Any]]:
+        name, typ = k
+        if name is not None:
+            factory = self.marker.pool.get(name)
+            if factory is not None:
+                return factory
+            return self.once_marker.pool.get(name)
+        else:
+            # default component
+            logger.debug("lookup default component, type=%r", typ)
+            factory = self.marker.default_pool.get(typ)
+            if factory is not None:
+                return factory
+            return self.once_marker.default_pool.get(typ)
 
     def resolve_args(
         self,
@@ -133,24 +133,36 @@ class _ResolverInternal:
 
         args = [None for i in range(i)] if i else []
         for name in argspec.args[i:]:
-            if name in self.registry:
-                val = self.registry[name]
-                args.append(val)
-                self._type_check(val, typ=argspec.annotations[name], strict=strict)
-                continue
+            typ = argspec.annotations[name]
+            component_factory = None
+            cached: t.Optional[t.Any] = None
+            for k in [(name, typ), (None, typ)]:
+                if k in self.registry:
+                    cached = self.registry[k]
+                    self._type_check(cached, typ=typ, strict=strict)
+                    break
 
-            component_factory = self._lookup_component_factory(argspec, name)
+                component_factory = self._lookup_component_factory(argspec, k)
+                if component_factory is not None:
+                    break
+
+            if cached is not None:
+                args.append(cached)
+                continue
+            if component_factory is None:
+                raise ValueError(f"component ({name} : {typ}) is not found")
+
             component_args = self.resolve_args(component_factory)
             val = run_with(component_factory, component_args, {})
 
-            # global compnent?
+            # global component?
             if self.once_marker.is_marked(component_factory):
-                self.root_resolver.registry[name] = val
+                self.root_resolver.registry[k] = val
             else:
-                self.registry[name] = val
+                self.registry[k] = val
             args.append(val)
-
             self._type_check(val, typ=argspec.annotations[name], strict=strict)
+
         return args
 
     async def resolve_args_async(
@@ -162,29 +174,42 @@ class _ResolverInternal:
     ) -> t.List[t.Any]:
         argspec = _get_fullargspec(fn)
 
-        if not argspec.args and fn.__name__ in self.marker.pool:
+        g = self.marker.pool
+        if not argspec.args and fn.__name__ in g:
             return []
 
         args = [None for i in range(i)] if i else []
         for name in argspec.args[i:]:
-            if name in self.registry:
-                val = self.registry[name]
-                args.append(val)
-                self._type_check(val, typ=argspec.annotations[name], strict=strict)
-                continue
+            typ = argspec.annotations[name]
+            component_factory = None
+            cached: t.Optional[t.Any] = None
+            for k in [(name, typ), (None, typ)]:
+                if k in self.registry:
+                    cached = self.registry[k]
+                    self._type_check(cached, typ=typ, strict=strict)
+                    break
 
-            component_factory = self._lookup_component_factory(argspec, name)
+                component_factory = self._lookup_component_factory(argspec, k)
+                if component_factory is not None:
+                    break
+
+            if cached is not None:
+                args.append(cached)
+                continue
+            if component_factory is None:
+                raise ValueError(f"component ({name} : {typ}) is not found")
+
             component_args = await self.resolve_args_async(component_factory)
             val = await run_with_async(component_factory, component_args, {})
 
             # global component?
             if self.once_marker.is_marked(component_factory):
-                self.root_resolver.registry[name] = val
+                self.root_resolver.registry[k] = val
             else:
-                self.registry[name] = val
+                self.registry[k] = val
             args.append(val)
-
             self._type_check(val, typ=argspec.annotations[name], strict=strict)
+
         return args
 
 
@@ -198,6 +223,7 @@ ignore = Marker("ignore")
 is_ignored = ignore.is_marked
 only = Marker("only")
 is_only = only.is_marked
+global_registry: t.Dict[str, t.Any] = {}
 
 
 def get_component_marker() -> Marker:
@@ -215,8 +241,13 @@ def get_ignore_marker() -> Marker:
     return ignore
 
 
-def get_resolver() -> Resolver:
-    return Resolver(marker=get_component_marker(), once_marker=get_once_marker())
+def get_resolver(registry: t.Optional[t.Dict[str, t.Any]] = None) -> Resolver:
+    global global_registry
+    if registry is None:
+        registry = global_registry
+    return Resolver(
+        marker=get_component_marker(), once_marker=get_once_marker(), registry=registry,
+    )
 
 
 def resolve_args(fn: t.Callable[..., t.Any], *, i: int = 0) -> t.List[t.Any]:
