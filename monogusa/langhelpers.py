@@ -1,8 +1,12 @@
 import typing as t
 import inspect
 import logging
-from functools import update_wrapper
+from functools import update_wrapper, partial
 import magicalimport
+
+if t.TYPE_CHECKING:
+    import asyncio
+
 
 magicalimport.logger.setLevel(logging.INFO)
 import_module = magicalimport.import_module
@@ -48,11 +52,17 @@ async def run_with_async(
     keywords: t.Mapping[str, t.Any],
     *,
     debug: bool = False,
+    loop: "t.Optional[asyncio.AbstractEventLoop]" = None,
 ) -> t.Any:
     if inspect.iscoroutinefunction(action):
         return await action(*positionals, **keywords)
     else:
-        return action(*positionals, **keywords)
+        import asyncio
+
+        loop = loop or asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, partial(action, *positionals, **keywords)
+        )
 
 
 def fullname(typ: t.Type[t.Any]) -> str:
