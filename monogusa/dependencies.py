@@ -8,7 +8,7 @@ from collections import ChainMap
 from functools import partial
 import dataclasses
 
-from .langhelpers import run_with, run_with_async, fullname
+from .langhelpers import run_with, run_with_async, fullname, get_origin_type
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +29,11 @@ class Marker:
         setattr(fn, f"_marked_as_{self.name}", True)
 
         if default:
-            ret_type = _get_fullargspec(fn).annotations.get("return")
+            argspec = _get_fullargspec(fn)
+            ret_type = argspec.annotations.get("return")
             if ret_type is None:
                 raise ValueError("please t.Callable[..., T]")
-            self.default_pool[ret_type] = fn
+            self.default_pool[get_origin_type(ret_type)] = fn
         return fn
 
     def is_marked(self, fn: t.Callable[..., t.Any]) -> bool:

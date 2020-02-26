@@ -4,7 +4,7 @@ import typing_extensions as tx
 from collections import defaultdict
 import dataclasses
 
-from .langhelpers import reify
+from .langhelpers import reify, get_origin_type
 from .dependencies import ignore, _get_fullargspec
 
 
@@ -59,16 +59,12 @@ class Subscription:
         self, event_type: t.Type[Event[T]]
     ) -> t.Callable[[LooseReaction], Reaction]:
         def _wrapped(fn: LooseReaction) -> Reaction:
-            typ = event_type
-            if hasattr(event_type, "__origin__"):
-                typ = typ.__origin__  # type: ignore
+            typ = get_origin_type(event_type)
 
             if self.runtime_check:
                 argspec = _get_fullargspec(fn)
                 for x in argspec.args:
-                    arg_type = argspec.annotations[x]
-                    if hasattr(arg_type, "__origin__"):
-                        arg_type = arg_type.__origin__
+                    arg_type = get_origin_type(argspec.annotations[x])
                     if arg_type == typ:
                         break
                 else:
