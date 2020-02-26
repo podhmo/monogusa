@@ -61,7 +61,7 @@ class Subscription:
         def _wrapped(fn: LooseReaction) -> Reaction:
             typ = event_type
             if hasattr(event_type, "__origin__"):
-                typ = typ.__origin__
+                typ = typ.__origin__  # type: ignore
 
             if self.runtime_check:
                 argspec = _get_fullargspec(fn)

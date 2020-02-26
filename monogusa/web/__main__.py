@@ -1,7 +1,7 @@
 import typing as t
 import pathlib
 from handofcats import as_command, Config
-from magicalimport import import_module
+from monogusa.langhelpers import import_module
 from monogusa.web.codegen import codegen
 
 

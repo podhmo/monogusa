@@ -2,7 +2,7 @@ import sys
 import argparse
 from monogusa.cli import run
 from monogusa.cli import runtime
-from magicalimport import import_module
+from monogusa.langhelpers import import_module
 
 
 def main() -> None:

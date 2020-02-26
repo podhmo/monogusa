@@ -8,7 +8,7 @@ from collections import ChainMap
 from functools import partial
 import dataclasses
 
-from .langhelpers import run_with, run_with_async
+from .langhelpers import run_with, run_with_async, fullname
 
 logger = logging.getLogger(__name__)
 
@@ -52,13 +52,16 @@ def _get_fullargspec(fn: t.Callable[..., t.Any]) -> inspect.FullArgSpec:
     return argspec
 
 
+Key = t.Tuple[t.Optional[str], t.Type[t.Any]]
+
+
 class Resolver:
     def __init__(
         self,
         marker: Marker,
         once_marker: Marker,
         *,
-        registry: t.Optional[t.Dict[str.t.Any]] = None,
+        registry: t.Optional[t.Dict[Key, t.Any]] = None,
     ) -> None:
         self.marker = marker
         self.once_marker = once_marker
@@ -92,7 +95,7 @@ class _ResolverInternal:
     def __init__(self, resolver: Resolver) -> None:
         self.marker = resolver.marker
         self.once_marker = resolver.once_marker
-        self.registry: t.MutableMapping[str, t.Any] = ChainMap({}, resolver.registry)
+        self.registry: t.MutableMapping[Key, t.Any] = ChainMap({}, resolver.registry)
 
         self.root_resolver = resolver
 
@@ -102,21 +105,31 @@ class _ResolverInternal:
                 assert isinstance(val, typ), f"{val!r} is not instance of {typ!r}"
 
     def _lookup_component_factory(
-        self, argspec: inspect.FullArgSpec, k: t.Tuple[[t.Optional, t.Type[t.Any]]]
+        self, argspec: inspect.FullArgSpec, k: Key
     ) -> t.Optional[t.Callable[..., t.Any]]:
         name, typ = k
         if name is not None:
             factory = self.marker.pool.get(name)
             if factory is not None:
+                logger.debug("component, got name=%s %r", name, fullname(typ))
                 return factory
-            return self.once_marker.pool.get(name)
+            factory = self.once_marker.pool.get(name)
+            if factory is not None:
+                logger.debug("once component, got name=%s %r", name, fullname(typ))
+                return factory
+            return None
         else:
             # default component
-            logger.debug("lookup default component, type=%r", typ)
+            logger.debug("default component, lookup %r", fullname(typ))
             factory = self.marker.default_pool.get(typ)
             if factory is not None:
+                logger.debug("default component, got %r", fullname(typ))
                 return factory
-            return self.once_marker.default_pool.get(typ)
+            factory = self.once_marker.default_pool.get(typ)
+            if factory is not None:
+                logger.debug("default once component, got %r", fullname(typ))
+                return factory
+            return None
 
     def resolve_args(
         self,
@@ -183,7 +196,7 @@ class _ResolverInternal:
             typ = argspec.annotations[name]
             component_factory = None
             cached: t.Optional[t.Any] = None
-            for k in [(name, typ), (None, typ)]:
+            for k in [(name, typ), (None, typ)]:  # type: Key
                 if k in self.registry:
                     cached = self.registry[k]
                     self._type_check(cached, typ=typ, strict=strict)
@@ -223,7 +236,7 @@ ignore = Marker("ignore")
 is_ignored = ignore.is_marked
 only = Marker("only")
 is_only = only.is_marked
-global_registry: t.Dict[str, t.Any] = {}
+global_registry: t.Dict[Key, t.Any] = {}
 
 
 def get_component_marker() -> Marker:
@@ -241,10 +254,11 @@ def get_ignore_marker() -> Marker:
     return ignore
 
 
-def get_resolver(registry: t.Optional[t.Dict[str, t.Any]] = None) -> Resolver:
+def get_resolver(registry: t.Optional[t.Dict[Key, t.Any]] = None) -> Resolver:
     global global_registry
     if registry is None:
         registry = global_registry
+
     return Resolver(
         marker=get_component_marker(), once_marker=get_once_marker(), registry=registry,
     )
@@ -279,10 +293,10 @@ def scan_module(
 
     for name, v in _globals.items():
         if name.startswith("_"):
-            logger.debug("skip, name=%r is ignored", name)
             continue
+
         if is_ignored(v):
-            logger.debug("skip, name=%r %r is ignored", name, v)
+            logger.debug("%r is ignored, skipped", fullname(v))
             continue
         if is_component(v):
             components.append(v)

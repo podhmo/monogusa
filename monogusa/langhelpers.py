@@ -1,8 +1,11 @@
 import typing as t
 import inspect
+import logging
 from functools import update_wrapper
+import magicalimport
 
-
+magicalimport.logger.setLevel(logging.INFO)
+import_module = magicalimport.import_module
 T = t.TypeVar("T")
 
 
@@ -50,3 +53,7 @@ async def run_with_async(
         return await action(*positionals, **keywords)
     else:
         return action(*positionals, **keywords)
+
+
+def fullname(typ: t.Type[t.Any]) -> str:
+    return f"{typ.__module__}.{typ.__name__}"

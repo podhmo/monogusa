@@ -85,7 +85,7 @@ def main(
     import logging
     import os
     import pathlib
-    from magicalimport import import_module
+    from monogusa.langhelpers import import_module
     import dotenv
 
     logging.basicConfig(level=logging.DEBUG)
