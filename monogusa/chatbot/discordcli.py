@@ -39,11 +39,14 @@ class Driver:
         argv = runtime.parse(text, name=self.command_name)
 
         with runtime.handle() as output_list:
+            r: t.Any = None
             if self.driver is None:
                 self.driver = cli_runtime.AsyncDriver(parser=self.parser)
-                await self.driver.run(argv, module=self.module, debug=self.debug)
+                r = await self.driver.run(argv, module=self.module, debug=self.debug)
             else:
-                await self.driver._run(argv, debug=self.debug)
+                r = await self.driver._run(argv, debug=self.debug)
+            if r is not None:
+                cli_runtime.default_continuation(r)
 
         if output_list:
             new_line = "\n"
