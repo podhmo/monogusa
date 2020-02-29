@@ -18,9 +18,12 @@ def encode(o: object) -> object:
     if hasattr(o, "json"):
         return o.json()  # type: ignore
 
-    raise TypeError(
-        "Object of type '%s' is not JSON serializable" % o.__class__.__name__
-    )
+    try:
+        return dict(o)
+    except Exception:
+        raise TypeError(
+            "Object of type '%s' is not JSON serializable" % o.__class__.__name__
+        )
 
 
 register = encode.register
