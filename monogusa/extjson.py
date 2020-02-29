@@ -8,17 +8,18 @@ from functools import (
 
 @singledispatch
 def encode(o: object) -> object:
-    # dateclasses
+    # e.g. dateclasses
     if hasattr(o.__class__, "__dataclass_fields__"):
         from dataclasses import asdict
 
         return asdict(o)
 
-    # pydantic.BaseModel
+    # e.g. pydantic.BaseModel
     if hasattr(o, "json"):
         return o.json()  # type: ignore
 
     try:
+        # e.g. sqlalchemy.engine.result.RowProxy
         return dict(o)
     except Exception:
         raise TypeError(
