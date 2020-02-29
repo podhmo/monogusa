@@ -3,6 +3,7 @@ import dotenv
 from databases import Database
 from sqlalchemy.engine import Engine
 from monogusa import component, once
+from monogusa import export_as_command
 
 import crud
 from models import metadata
@@ -13,13 +14,8 @@ def init(engine: Engine) -> None:
     metadata.create_all(bind=engine)
 
 
-async def add(db: Database, *, text: str, completed: bool = False) -> None:
-    print(await crud.create_note(db, text=text, completed=completed))
-
-
-async def list(db: Database) -> None:
-    for row in await crud.read_notes(db):
-        print(dict(row))
+add = export_as_command(crud.create_note, name="add")
+list = export_as_command(crud.read_notes, name="list")
 
 
 @once
