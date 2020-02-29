@@ -16,8 +16,6 @@ def emit_components(
     spec_map: t.Dict[str, fnspec.Fnspec],
     where: str,
 ) -> Module:
-    m.toplevel.from_("fastapi", "Depends")
-
     # sub
     spec_map = {
         component.__name__: spec_map[component.__name__] for component in components
@@ -59,11 +57,18 @@ def create_component_code(
 ) -> codeobject.Object:
     @codeobject.codeobject
     def _component_code(m: Module, name: str) -> Module:
+        Depends = m.toplevel.from_("fastapi").import_("Depends")
+
         args = []
         for name, typ, _ in spec.arguments:
             if typ.__module__ != "builtins":
                 m.toplevel.import_(typ.__module__)
-            args.append(helpers._spec_to_arg_value__with_depends(spec_map[name]))
+
+            args.append(
+                helpers._spec_to_arg_value__with_depends(
+                    spec_map[name], Depends=Depends
+                )
+            )
 
         with m.def_(
             spec.name,

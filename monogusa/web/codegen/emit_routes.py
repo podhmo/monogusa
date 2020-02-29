@@ -1,6 +1,6 @@
 import typing as t
 from prestring.naming import pascalcase
-from prestring.utils import LazyArguments
+from prestring.utils import LazyArguments, UnRepr
 
 from . import helpers
 from . import _codeobject as codeobject
@@ -17,7 +17,6 @@ def emit_routes(
 ) -> t.Tuple[Module, codeobject.Symbol]:
     m.toplevel.import_("typing", as_="t")
     APIRouter = m.toplevel.from_("fastapi").import_("APIRouter")
-    m.toplevel.from_("fastapi", "Depends")
 
     router = m.let("router", APIRouter())
     m.sep()
@@ -101,6 +100,8 @@ def create_view_code(
 
     @codeobject.codeobject
     def _emit_code(m: Module, name: str) -> Module:
+        Depends = m.toplevel.from_("fastapi").import_("Depends")
+
         m.stmt(
             '@router.post("/{}", response_model=runtime.CommandOutput)',
             spec.command_name,
@@ -113,7 +114,11 @@ def create_view_code(
         for argname, typ, _ in spec.arguments:
             if typ.__module__ != "builtins":
                 m.toplevel.import_(typ.__module__)
-            args.append(helpers._spec_to_arg_value__with_depends(spec_map[argname]))
+            args.append(
+                helpers._spec_to_arg_value__with_depends(
+                    spec_map[argname], Depends=Depends
+                )
+            )
 
         with m.def_(
             name,
@@ -125,12 +130,14 @@ def create_view_code(
             if spec.doc is not None:
                 m.docstring(spec.doc)
             with m.with_("runtime.handle() as s"):
-                args = [argname for argname, _, _ in spec.arguments]
+                args = [UnRepr(argname) for argname, _, _ in spec.arguments]
                 if InputSchema is not None:
-                    args.append("**input.dict()")
+                    args.append(UnRepr("**input.dict()"))
 
-                prefix = "await " if spec.is_coroutinefunction else ""
-                m.stmt("{}{}({})", prefix, spec.fullname, LazyArguments(args))
+                m.stmt(
+                    codeobject.Symbol(spec.fullname)(*args),
+                    await_=spec.is_coroutinefunction,
+                )
             m.stmt("return s.dict()")
         return m
 

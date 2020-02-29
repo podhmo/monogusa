@@ -3,7 +3,7 @@ import sys
 import re
 import pathlib
 
-from ._codeobject import Module
+from ._codeobject import Module, Symbol
 from . import _fnspec as fnspec
 
 
@@ -53,8 +53,10 @@ def _to_valid_module_name(
     return _ignore_rx.sub("_", name.replace("-", "_"))
 
 
-def _spec_to_arg_value__with_depends(spec: fnspec.Fnspec) -> str:
+def _spec_to_arg_value__with_depends(spec: fnspec.Fnspec, *, Depends: Symbol) -> str:
+    typ = spec.type_str_of(spec.return_type)
     if len(spec.arguments) == 0:
-        return f"{spec.name}: {spec.type_str_of(spec.return_type)} = Depends({spec.fullname})"
-
-    return f"{spec.name}: {spec.type_str_of(spec.return_type)} = Depends({spec.name})"
+        val = Symbol(spec.fullname)
+    else:
+        val = Symbol(spec.name)
+    return f"{spec.name}: {typ} = {Depends(val)}"
