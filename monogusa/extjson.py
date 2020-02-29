@@ -7,7 +7,7 @@ from functools import (
 
 
 @singledispatch
-def encode(o):
+def encode(o: object) -> object:
     # dateclasses
     if hasattr(o.__class__, "__dataclass_fields__"):
         from dataclasses import asdict
@@ -16,7 +16,7 @@ def encode(o):
 
     # pydantic.BaseModel
     if hasattr(o, "json"):
-        return o.json()
+        return o.json()  # type: ignore
 
     raise TypeError(
         "Object of type '%s' is not JSON serializable" % o.__class__.__name__
