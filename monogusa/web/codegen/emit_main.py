@@ -1,5 +1,4 @@
 import typing as t
-
 from . import _codeobject as codeobject
 from ._codeobject import Module
 from . import _fnspec as fnspec
@@ -18,25 +17,29 @@ def emit_main(
     with_main: bool,
 ) -> Module:
     m = emit_components(m, components=components, where=where, spec_map=spec_map)
-    m = emit_routes(m, functions=functions, where=where, spec_map=spec_map)
+    m, router = emit_routes(m, functions=functions, where=where, spec_map=spec_map)
     if with_main:
-        m.stmt(main_code)
+        m.stmt(create_main_code(router))
     return m
 
 
-@codeobject.codeobject
-def main_code(m: Module, name: str) -> Module:
-    m.toplevel.from_("fastapi", "FastAPI")
+def create_main_code(router: codeobject.Symbol) -> codeobject.Object:
+    @codeobject.codeobject
+    def main_code(m: Module, name: str) -> Module:
+        FastAPI = m.toplevel.from_("fastapi").import_("FastAPI")
 
-    with m.def_("main", "app: FastAPI", return_type=None):
-        m.from_("monogusa.web", "cli")
+        app = codeobject.Symbol("app")
+        with m.def_("main", f"{app}: {FastAPI}", return_type=None) as main:
+            cli = m.from_("monogusa.web").import_("cli")
+            m.sep()
+            m.stmt(cli.run(app))
+
+        app = m.let("app", FastAPI())
+        m.stmt(app.include_router(router))
         m.sep()
-        m.stmt(f"cli.run(app)")
 
-    m.stmt("app = FastAPI()")
-    m.stmt("app.include_router(router)")
-    m.sep()
+        with m.if_("__name__ == '__main__'"):
+            m.stmt(main(app=app))
+        return m
 
-    with m.if_("__name__ == '__main__'"):
-        m.stmt("main(app=app)")
-    return m
+    return main_code

@@ -14,11 +14,12 @@ def emit_routes(
     functions: t.List[t.Callable[..., t.Any]],
     spec_map: t.Dict[str, fnspec.Fnspec],
     where: str,
-) -> Module:
+) -> t.Tuple[Module, codeobject.Symbol]:
     m.toplevel.import_("typing", as_="t")
-    m.toplevel.from_("fastapi", "APIRouter", "Depends")
+    APIRouter = m.toplevel.from_("fastapi").import_("APIRouter")
+    m.toplevel.from_("fastapi", "Depends")
 
-    m.stmt("router = APIRouter()")
+    router = m.let("router", APIRouter())
     m.sep()
 
     for fn in functions:
@@ -33,7 +34,7 @@ def emit_routes(
 
         view_code = create_view_code(spec, InputSchema=schema_code, spec_map=spec_map)
         m.stmt(view_code)
-    return m
+    return m, router
 
 
 def create_input_schema_code(spec: fnspec.Fnspec) -> codeobject.Object:

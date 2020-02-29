@@ -1,6 +1,6 @@
 from __future__ import annotations
 from prestring.python import PythonModule
-from prestring.codeobject import CodeObjectModuleMixin, codeobject, Object
+from prestring.codeobject import CodeObjectModuleMixin, codeobject, Object, Symbol
 from monogusa.langhelpers import reify
 
 
@@ -10,4 +10,4 @@ class Module(CodeObjectModuleMixin, PythonModule):
         return self.submodule()
 
 
-__all__ = ["codeobject", "Module", "Object"]
+__all__ = ["codeobject", "Module", "Object", "Symbol"]
