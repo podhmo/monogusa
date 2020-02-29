@@ -71,5 +71,5 @@ def fullname(typ: t.Type[t.Any]) -> str:
 
 def get_origin_type(typ: t.Type[t.Any]) -> t.Type[t.Any]:
     if hasattr(typ, "__origin__"):
-        return typ.__origin__
+        return typ.__origin__  # type: ignore
     return typ

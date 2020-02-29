@@ -10,7 +10,7 @@ from . import _fnspec as fnspec
 def setup_module(*, header: t.Optional[str] = None) -> Module:
     m = Module(import_unique=True)
 
-    m.toplevel = m.submodule()
+    m.toplevel  # create
     m.sep()
 
     if header:

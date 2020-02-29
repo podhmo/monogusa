@@ -13,7 +13,7 @@ setup(
     ],
     python_requires=">=3.7",
     packages=find_packages(exclude=["monogusa.tests"]),
-    install_requires=["handofcats>=3.2.0", "magicalimport>=0.9.1", "prestring>=0.8.2"],
+    install_requires=["handofcats>=3.2.0", "magicalimport>=0.9.1", "prestring>=0.8.3"],
     extras_require={
         "testing": ["pytest", "pytest-asyncio"],
         "dev": ["black", "flake8", "mypy"],

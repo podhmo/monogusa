@@ -2,6 +2,7 @@ from __future__ import annotations
 import typing as t
 import typing_extensions as tx
 from types import ModuleType
+from io import StringIO
 import pathlib
 import dataclasses
 from functools import partial
@@ -98,7 +99,7 @@ class Config:
         d.update({x.__name__: fnspec(x) for x in self.scanned.components})
         return d
 
-    def output(self, *, dry_run: bool) -> output:
+    def output(self, *, dry_run: bool) -> output[StringIO]:
         if dry_run:
             return output(self.dst, use_console=True, verbose=True)
         return output(self.dst)
