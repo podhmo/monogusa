@@ -1,7 +1,4 @@
-import typing as t
 from __future__ import annotations
-from prestring import _Sentinel, ModuleT
-from prestring.utils import LazyFormat
 from prestring.python import PythonModule
 from prestring.codeobject import CodeObjectModuleMixin, codeobject, Object
 from monogusa.langhelpers import reify

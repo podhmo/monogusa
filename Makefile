@@ -9,9 +9,13 @@ format:
 #	pip install -e .[dev]
 	black monogusa setup.py
 
+# https://www.flake8rules.com/rules/W503.html
+# https://www.flake8rules.com/rules/W504.html
+# https://www.flake8rules.com/rules/E203.html
+# https://www.flake8rules.com/rules/E501.html
 lint:
 #	pip install -e .[dev]
-	flake8 monogusa --ignore W503,E203,E501
+	flake8 monogusa --ignore W503,W504,E203,E501
 
 typing:
 #	pip install -e .[dev]
