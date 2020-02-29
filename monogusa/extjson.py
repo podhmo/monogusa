@@ -20,7 +20,7 @@ def encode(o: object) -> object:
 
     try:
         # e.g. sqlalchemy.engine.result.RowProxy
-        return dict(o)
+        return dict(o)  # type: ignore
     except Exception:
         raise TypeError(
             "Object of type '%s' is not JSON serializable" % o.__class__.__name__
