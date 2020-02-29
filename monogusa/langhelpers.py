@@ -66,6 +66,7 @@ async def run_with_async(
 
 
 def fullname(typ: t.Type[t.Any]) -> str:
+    typ = get_origin_type(typ)
     return f"{typ.__module__}.{typ.__name__}"
 
 
