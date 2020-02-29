@@ -4,7 +4,12 @@ import argparse
 import inspect
 from handofcats.injector import Injector
 from monogusa.langhelpers import reify, run_with, run_with_async
-from monogusa.dependencies import scan_module, resolve_args, resolve_args_async
+from monogusa.dependencies import (
+    scan_module,
+    resolve_args,
+    resolve_args_async,
+    get_command_name,
+)
 
 
 class _HelpFormatter(
@@ -36,7 +41,7 @@ class Driver:
 
     def register(self, fn: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:
         sub_parser = self.subparsers.add_parser(
-            fn.__name__,
+            get_command_name(fn),
             help=_get_summary(fn),
             formatter_class=self.parser.formatter_class,
         )

@@ -44,6 +44,21 @@ class Marker:
         return name in self.pool
 
 
+class Pool:
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.pool: t.Dict[t.Callable[..., t.Any], str] = {}
+
+    def __call__(
+        self, fn: t.Callable[..., t.Any], *, name: t.Optional[str] = None,
+    ) -> t.Callable[..., t.Any]:
+        self.pool[fn] = name or fn.__name__
+        return fn
+
+    def __contains__(self, fn: t.Callable[..., t.Any]) -> bool:
+        return fn in self.pool
+
+
 def _get_fullargspec(fn: t.Callable[..., t.Any]) -> inspect.FullArgSpec:
     argspec = inspect.getfullargspec(fn)
     # XXX: for `from __future__ import annotations`
@@ -239,6 +254,8 @@ only = Marker("only")
 is_only = only.is_marked
 global_registry: t.Dict[Key, t.Any] = {}
 
+export_as_command = Pool("exported_commands")
+
 
 def get_component_marker() -> Marker:
     global component
@@ -299,9 +316,12 @@ def scan_module(
         if is_ignored(v):
             logger.debug("%r is ignored, skipped", fullname(v))
             continue
+
         if is_component(v):
             components.append(v)
-        elif inspect.isfunction(v) and v.__module__ == where:
+        elif inspect.isfunction(v) and (
+            v.__module__ == where or v in export_as_command
+        ):
             if is_only(v) and not ignore_only:
                 logger.debug("only, name=%r %r", name, v)
                 only_commands.append(v)
@@ -314,3 +334,7 @@ def scan_module(
 class Scanned:
     commands: t.List[t.Callable[..., t.Any]]
     components: t.List[t.Callable[..., t.Any]]
+
+
+def get_command_name(fn: t.Callable[..., t.Any], *, _pool=export_as_command) -> str:
+    return _pool.pool.get(fn) or fn.__name__

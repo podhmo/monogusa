@@ -8,14 +8,16 @@ from monogusa.dependencies import (
 )
 
 # for commands
-from monogusa.dependencies import ignore, only
+from monogusa.dependencies import ignore, only, export_as_command
 
 __all__ = [
     "component",
     "default_component",
     "is_component",
-    "default_once",
     "once",
+    "default_once",
+    # commands
     "ignore",
     "only",
+    "export_as_command",
 ]
