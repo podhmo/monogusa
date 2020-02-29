@@ -326,6 +326,11 @@ def scan_module(
             if _is_only(v) and not ignore_only:
                 logger.debug("only, name=%r %r", name, v)
                 only_commands.append(v)
+
+            if v in export_as_command:
+                # overwrite as varname
+                export_as_command(v, name=name)
+
             commands.append(v)
 
     return Scanned(commands=only_commands or commands, components=components)

@@ -14,8 +14,8 @@ def init(engine: Engine) -> None:
     metadata.create_all(bind=engine)
 
 
-add = export_as_command(crud.create_note, name="add")
-list = export_as_command(crud.read_notes, name="list")
+add = export_as_command(crud.create_note)
+list = export_as_command(crud.read_notes)
 
 
 @once
