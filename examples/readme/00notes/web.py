@@ -7,8 +7,8 @@ from fastapi import (
     FastAPI,
 )
 import typing as t
-from pydantic import BaseModel
 from monogusa.web import runtime
+from pydantic import BaseModel
 import databases.core
 
 

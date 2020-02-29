@@ -16,7 +16,6 @@ def emit_routes(
     where: str,
 ) -> Module:
     m.toplevel.import_("typing", as_="t")
-    m.toplevel.from_("pydantic", "BaseModel")
     m.toplevel.from_("fastapi", "APIRouter", "Depends")
 
     m.stmt("router = APIRouter()")
@@ -37,7 +36,7 @@ def emit_routes(
     return m
 
 
-def create_input_schema_code(spec: fnspec.Fnspec,) -> codeobject.Object:
+def create_input_schema_code(spec: fnspec.Fnspec) -> codeobject.Object:
     """
     generate code like below
 
@@ -50,7 +49,9 @@ def create_input_schema_code(spec: fnspec.Fnspec,) -> codeobject.Object:
 
     @codeobject.codeobject
     def _emit_code(m: Module, name: str) -> Module:
-        with m.class_(name, "BaseModel"):
+        BaseModel = m.toplevel.from_("pydantic").import_("BaseModel")
+
+        with m.class_(name, BaseModel):
             if spec.doc is not None:
                 m.docstring(
                     f"auto generated class from {spec.body.__module__}:{spec.name}"
