@@ -18,7 +18,6 @@ def encode(o):
     if hasattr(o, "json"):
         return o.json()
 
-    
     raise TypeError(
         "Object of type '%s' is not JSON serializable" % o.__class__.__name__
     )
