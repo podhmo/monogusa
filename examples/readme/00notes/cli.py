@@ -1,7 +1,6 @@
 import os
 import dotenv
 from databases import Database
-from sqlalchemy.engine import Engine
 from monogusa import component, once
 from monogusa import export_as_command
 
@@ -9,13 +8,28 @@ import crud
 from models import metadata
 
 
-def init(engine: Engine) -> None:
-    """ init tables"""
-    metadata.create_all(bind=engine)
+########################################
+# commands
+########################################
 
 
 add = export_as_command(crud.create_note)
 list = export_as_command(crud.read_notes)
+
+
+def init(database_url: str) -> None:
+    """ init tables"""
+    import sqlalchemy
+
+    engine = sqlalchemy.create_engine(
+        database_url, connect_args={"check_same_thread": False}
+    )
+    metadata.create_all(bind=engine)
+
+
+########################################
+# components
+########################################
 
 
 @once
@@ -31,12 +45,3 @@ async def db(database_url: str) -> Database:
     db = Database(database_url)
     await db.connect()
     return db
-
-
-@component
-def engine(database_url: str) -> Engine:
-    import sqlalchemy
-
-    return sqlalchemy.create_engine(
-        database_url, connect_args={"check_same_thread": False}
-    )
