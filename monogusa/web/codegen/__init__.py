@@ -8,7 +8,7 @@ import dataclasses
 from functools import partial
 
 from prestring.output import output
-from monogusa.dependencies import scan_module, Scanned
+from monogusa.dependencies import scan_module, Scanned, get_command_name
 from monogusa.langhelpers import reify
 
 from ._codeobject import Module
@@ -95,7 +95,10 @@ class Config:
 
     @reify
     def spec_map(self) -> t.Dict[str, Fnspec]:
-        d = {x.__name__: fnspec(x) for x in self.scanned.commands}
+        d = {
+            x.__name__: fnspec(x, name=get_command_name(x))
+            for x in self.scanned.commands
+        }
         d.update({x.__name__: fnspec(x) for x in self.scanned.components})
         return d
 

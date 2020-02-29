@@ -13,10 +13,15 @@ from monogusa.langhelpers import reify
 class Fnspec:
     body: t.Callable[..., t.Any]
     argspec: inspect.FullArgSpec
+    _command_name: t.Optional[str] = None
     _module: t.Optional[str] = None
     _aliases: t.Dict[str, str] = dataclasses.field(
         default_factory=lambda: {"typing": "t"}  # xxx:
     )
+
+    @property
+    def command_name(self) -> str:
+        return self._command_name or self.body.__name__
 
     @property
     def name(self) -> str:
@@ -29,7 +34,7 @@ class Fnspec:
 
     @property
     def fullname(self) -> str:
-        return f"{self.module}.{self.name}"
+        return f"{self.module}.{self.body.__name__}"
 
     @property
     def doc(self) -> t.Optional[str]:
@@ -121,12 +126,12 @@ class Fnspec:
         return defaults
 
 
-def fnspec(fn: t.Callable[..., t.Any]) -> Fnspec:
+def fnspec(fn: t.Callable[..., t.Any], *, name: t.Optional[str] = None) -> Fnspec:
     argspec = inspect.getfullargspec(fn)
     annotations = t.get_type_hints(fn)
     assert len(argspec.annotations) == len(annotations)
     argspec.annotations.update(annotations)
-    spec = Fnspec(fn, argspec=argspec)
+    spec = Fnspec(fn, argspec=argspec, _command_name=name)
     update_wrapper(spec, fn)  # type: ignore
     return spec
 

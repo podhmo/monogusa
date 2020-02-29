@@ -77,7 +77,7 @@ def create_input_schema_code(spec: fnspec.Fnspec,) -> codeobject.Object:
                     raise ValueError(f"invalid kind. name={name}, kind={kind}")
         return m
 
-    _emit_code.name = f"{pascalcase(spec.name)}Input"
+    _emit_code.name = f"{pascalcase(spec.command_name)}Input"
     return _emit_code
 
 
@@ -99,7 +99,10 @@ def create_view_code(
 
     @codeobject.codeobject
     def _emit_code(m: Module, name: str) -> Module:
-        m.stmt('@router.post("/{}", response_model=runtime.CommandOutput)', spec.name)
+        m.stmt(
+            '@router.post("/{}", response_model=runtime.CommandOutput)',
+            spec.command_name,
+        )
 
         args = []
         if InputSchema is not None:
@@ -129,5 +132,5 @@ def create_view_code(
             m.stmt("return s.dict()")
         return m
 
-    _emit_code.name = spec.name  # update name
+    _emit_code.name = spec.command_name  # update name
     return _emit_code
