@@ -1,3 +1,5 @@
+# need: setup .env
+
 help:
 	python -m monogusa.cli cli.py -h
 init:
@@ -18,3 +20,5 @@ ui-web: web-codegen
 
 web-codegen:
 	python -m monogusa.web cli.py --dst .
+setup:
+	pip install -r requirements.txt

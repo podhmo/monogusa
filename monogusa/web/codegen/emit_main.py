@@ -30,6 +30,7 @@ def main_code(m: Module, name: str) -> Module:
 
     with m.def_("main", "app: FastAPI", return_type=None):
         m.from_("monogusa.web", "cli")
+        m.sep()
         m.stmt(f"cli.run(app)")
 
     m.stmt("app = FastAPI()")
