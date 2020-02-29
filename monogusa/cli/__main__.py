@@ -1,4 +1,3 @@
-import typing as t
 import sys
 import argparse
 from monogusa.cli import run
@@ -41,20 +40,12 @@ def main() -> None:
         return
 
     if args.cont is None:
-        cont = default_continuation
+        cont = runtime.default_continuation
     else:
         from magicalimport import import_symbol
 
         cont = import_symbol(args.cont)
     cont(retval)
-
-
-def default_continuation(x: t.Any) -> None:
-    from monogusa import extjson
-    import sys
-
-    extjson.dump(x, sys.stdout)
-    print("")
 
 
 if __name__ == "__main__":

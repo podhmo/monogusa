@@ -131,3 +131,11 @@ def _get_summary(fn: t.Callable[..., t.Any]) -> t.Optional[str]:
     if not doc:
         return doc
     return doc.split("\n\n", 1)[0]
+
+
+def default_continuation(x: t.Any) -> None:
+    from monogusa import extjson
+    import sys
+
+    extjson.dump(x, sys.stdout)
+    print("")
