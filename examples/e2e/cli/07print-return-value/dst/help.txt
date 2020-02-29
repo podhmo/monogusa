@@ -1,0 +1,9 @@
+usage: 07print-return-value/commands.py [-h] {hello,bye} ...
+
+optional arguments:
+  -h, --help   show this help message and exit
+
+subcommands:
+  {hello,bye}
+    hello
+    bye

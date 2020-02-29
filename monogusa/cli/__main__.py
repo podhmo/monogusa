@@ -15,6 +15,7 @@ def main() -> None:
     parser.add_argument("file")
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--ignore-only", action="store_true")
+    parser.add_argument("--cont", default=None)
 
     activate_logging = logging_setup(parser, debug=False)
 
