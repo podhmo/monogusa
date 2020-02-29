@@ -11,20 +11,19 @@ import dataclasses
 from .langhelpers import run_with, run_with_async, fullname, get_origin_type
 
 logger = logging.getLogger(__name__)
+FunctionType = t.Callable[..., t.Any]
 
 
 class Marker:
-    pool: t.Dict[str, t.Callable[..., t.Any]]
-    default_pool: t.Dict[t.Type[t.Any], t.Callable[..., t.Any]]
+    pool: t.Dict[str, FunctionType]
+    default_pool: t.Dict[t.Type[t.Any], FunctionType]
 
     def __init__(self, name: str) -> None:
         self.name = name
         self.pool = {}
         self.default_pool = {}
 
-    def __call__(
-        self, fn: t.Callable[..., t.Any], *, default: bool = False
-    ) -> t.Callable[..., t.Any]:
+    def __call__(self, fn: FunctionType, *, default: bool = False) -> FunctionType:
         self.pool[fn.__name__] = fn
         setattr(fn, f"_marked_as_{self.name}", True)
 
@@ -36,7 +35,7 @@ class Marker:
             self.default_pool[get_origin_type(ret_type)] = fn
         return fn
 
-    def is_marked(self, fn: t.Callable[..., t.Any]) -> bool:
+    def is_marked(self, fn: FunctionType) -> bool:
         v = getattr(fn, f"_marked_as_{self.name}", False)  # type: bool
         return v
 
@@ -47,19 +46,19 @@ class Marker:
 class Pool:
     def __init__(self, name: str) -> None:
         self.name = name
-        self.pool: t.Dict[t.Callable[..., t.Any], str] = {}
+        self.pool: t.Dict[FunctionType, str] = {}
 
     def __call__(
-        self, fn: t.Callable[..., t.Any], *, name: t.Optional[str] = None,
-    ) -> t.Callable[..., t.Any]:
+        self, fn: FunctionType, *, name: t.Optional[str] = None,
+    ) -> FunctionType:
         self.pool[fn] = name or fn.__name__
         return fn
 
-    def __contains__(self, fn: t.Callable[..., t.Any]) -> bool:
+    def __contains__(self, fn: FunctionType) -> bool:
         return fn in self.pool
 
 
-def _get_fullargspec(fn: t.Callable[..., t.Any]) -> inspect.FullArgSpec:
+def _get_fullargspec(fn: FunctionType) -> inspect.FullArgSpec:
     argspec = inspect.getfullargspec(fn)
     # XXX: for `from __future__ import annotations`
     annotations = t.get_type_hints(fn)
@@ -122,7 +121,7 @@ class _ResolverInternal:
 
     def _lookup_component_factory(
         self, argspec: inspect.FullArgSpec, k: Key
-    ) -> t.Optional[t.Callable[..., t.Any]]:
+    ) -> t.Optional[FunctionType]:
         name, typ = k
         if name is not None:
             factory = self.marker.pool.get(name)
@@ -282,21 +281,23 @@ def get_resolver(registry: t.Optional[t.Dict[Key, t.Any]] = None) -> Resolver:
     )
 
 
-def resolve_args(fn: t.Callable[..., t.Any], *, i: int = 0) -> t.List[t.Any]:
+def resolve_args(fn: FunctionType, *, i: int = 0) -> t.List[t.Any]:
     return get_resolver().resolve_args(fn, i=i)
 
 
-async def resolve_args_async(
-    fn: t.Callable[..., t.Any], *, i: int = 0
-) -> t.List[t.Any]:
+async def resolve_args_async(fn: FunctionType, *, i: int = 0) -> t.List[t.Any]:
     return await get_resolver().resolve_args_async(fn, i=i)
 
 
 def scan_module(
     module: t.Optional[ModuleType] = None,
     where: t.Optional[str] = None,
-    _depth: int = 1,
+    *,
     ignore_only: bool = False,
+    _depth: int = 1,
+    _is_ignored: t.Callable[[FunctionType], bool] = is_ignored,
+    _is_component: t.Callable[[FunctionType], bool] = is_component,
+    _is_only: t.Callable[[FunctionType], bool] = is_only,
 ) -> Scanned:
     if module is not None:
         _globals = module.__dict__
@@ -313,16 +314,16 @@ def scan_module(
         if name.startswith("_"):
             continue
 
-        if is_ignored(v):
+        if _is_ignored(v):
             logger.debug("%r is ignored, skipped", fullname(v))
             continue
 
-        if is_component(v):
+        if _is_component(v):
             components.append(v)
         elif inspect.isfunction(v) and (
             v.__module__ == where or v in export_as_command
         ):
-            if is_only(v) and not ignore_only:
+            if _is_only(v) and not ignore_only:
                 logger.debug("only, name=%r %r", name, v)
                 only_commands.append(v)
             commands.append(v)
@@ -332,9 +333,9 @@ def scan_module(
 
 @dataclasses.dataclass(frozen=True)
 class Scanned:
-    commands: t.List[t.Callable[..., t.Any]]
-    components: t.List[t.Callable[..., t.Any]]
+    commands: t.List[FunctionType]
+    components: t.List[FunctionType]
 
 
-def get_command_name(fn: t.Callable[..., t.Any], *, _pool=export_as_command) -> str:
+def get_command_name(fn: FunctionType, *, _pool: Pool = export_as_command) -> str:
     return _pool.pool.get(fn) or fn.__name__
